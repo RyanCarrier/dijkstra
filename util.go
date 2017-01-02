@@ -18,26 +18,37 @@ func Import(filename string) (g Graph, m map[string]int, err error) {
 	if err != nil {
 		return
 	}
+	m = map[string]int{}
+	g.Visiting = NewList()
+
 	input := strings.TrimSpace(string(got))
 	for _, line := range strings.Split(input, "\n") {
 		f := strings.Fields(line)
 		//no need to check for size cause there must be something as the string is trimmed and split
 		if mapping {
-			m[f[0]] = lowestIndex
-			i = lowestIndex
-			lowestIndex++
+			if _, ok := m[f[0]]; !ok {
+				m[f[0]] = lowestIndex
+				i = lowestIndex
+				lowestIndex++
+			}
+		} else {
+			i, err = strconv.Atoi(f[0])
+			if err != nil {
+				mapping = true
+				m[f[0]] = lowestIndex
+				i = lowestIndex
+				lowestIndex++
+			}
 		}
-		i, err = strconv.Atoi(f[0])
-		if err != nil {
-			mapping = true
-			m[f[0]] = lowestIndex
-			i = lowestIndex
-			lowestIndex++
-		}
-		if len(g.Verticies) <= i { //Extend if we have to
+		if temp := len(g.Verticies); temp <= i { //Extend if we have to
 			g.Verticies = append(g.Verticies, make([]Vertex, 1+i-len(g.Verticies))...)
+			for ; temp < len(g.Verticies); temp++ {
+				g.Verticies[temp].ID = temp
+				g.Verticies[temp].Arcs = map[int]int64{}
+			}
 		}
-		g.Verticies[i].ID = i
+		//g.Verticies[i].ID = i
+		//g.Verticies[i].Arcs = map[int]int64{}
 		if len(f) == 1 {
 			//if there is no FROM here
 			continue
@@ -71,6 +82,7 @@ func Import(filename string) (g Graph, m map[string]int, err error) {
 			g.Verticies[i].Arcs[arc] = dist
 		}
 	}
+	g.Visited = make([]bool, len(g.Verticies))
 	err = g.validate()
 	return
 }

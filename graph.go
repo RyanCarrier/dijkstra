@@ -3,6 +3,7 @@ package dijkstra
 import (
 	"errors"
 	"fmt"
+	"math"
 )
 
 //Graph contains all the graph details
@@ -11,17 +12,8 @@ type Graph struct {
 	Visited []bool
 	//slice of all verticies available
 	Verticies []Vertex
-}
 
-//Vertex is a single node in the network, contains it's ID, best distance (to
-// itself from the src) and the weight to go to each other connected node (Vertex)
-type Vertex struct {
-	//ID of the Vertex
-	ID int
-	//Best Distance to the Vertex
-	Distance int64
-	//A set of all weights to the nodes in the map
-	Arcs map[int]int64
+	Visiting *List
 }
 
 func (g Graph) validate() error {
@@ -31,9 +23,26 @@ func (g Graph) validate() error {
 	for _, v := range g.Verticies {
 		for a := range v.Arcs {
 			if a >= len(g.Verticies) || (g.Verticies[a].ID == 0 && a != 0) {
-				return errors.New(fmt.Sprint("Vertex ", a, " referenced in arcs by Vertex ", v.ID))
+				fmt.Printf("%+v", g)
+				return errors.New(fmt.Sprint("Graph validation error;", "Vertex ", a, " referenced in arcs by Vertex ", v.ID))
 			}
 		}
 	}
 	return nil
+}
+
+//SetMaxDistances sets all Vertex distances to the max of int64
+func (g *Graph) SetMaxDistances() {
+	g.setAllDistances(math.MaxInt64)
+}
+
+//SetMinDistances sets all Vertex distances to the min of int64
+func (g *Graph) SetMinDistances() {
+	g.setAllDistances(math.MinInt64)
+}
+
+func (g *Graph) setAllDistances(max int64) {
+	for i := range g.Verticies {
+		g.Verticies[i].Distance = max
+	}
 }
