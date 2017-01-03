@@ -82,7 +82,6 @@ func Import(filename string) (g Graph, m map[string]int, err error) {
 			g.Verticies[i].Arcs[arc] = dist
 		}
 	}
-	g.Visited = make([]bool, len(g.Verticies))
 	err = g.validate()
 	return
 }

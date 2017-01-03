@@ -8,8 +8,6 @@ import (
 
 //Graph contains all the graph details
 type Graph struct {
-	//slice of visited Vertex (ID's)
-	Visited []bool
 	//slice of all verticies available
 	Verticies []Vertex
 
@@ -19,13 +17,9 @@ type Graph struct {
 //AddVerticies adds the listed verticies to the graph
 func (g *Graph) AddVerticies(v ...Vertex) {
 	g.Verticies = append(g.Verticies, v...)
-	g.Visited = append(g.Visited, make([]bool, len(v))...)
 }
 
 func (g Graph) validate() error {
-	if len(g.Verticies) != len(g.Visited) {
-		return errors.New("Verticies and visited slice are not same length")
-	}
 	for _, v := range g.Verticies {
 		for a := range v.Arcs {
 			if a >= len(g.Verticies) || (g.Verticies[a].ID == 0 && a != 0) {

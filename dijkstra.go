@@ -8,6 +8,7 @@ import (
 
 //Shortest calculates the shortest path from src to dest
 func (g *Graph) Shortest(src, dest int) (BestPath, error) {
+	visitedDest := false
 	g.Visiting = NewList()
 	g.SetDefaults(int64(math.MaxInt64), -1)
 	g.Verticies[src].Distance = 0
@@ -17,10 +18,12 @@ func (g *Graph) Shortest(src, dest int) (BestPath, error) {
 	var current *Vertex
 	for g.Visiting.Len() > 0 {
 		current = g.Visiting.PopFront()
-		if g.Visited[current.ID] && (bestSet && current.Distance > best) {
+		if current.ID == dest {
+			visitedDest = true
+		}
+		if bestSet && current.Distance > best {
 			continue
 		}
-		g.Visited[current.ID] = true
 		for v, dist := range current.Arcs {
 			if current.Distance+dist < g.Verticies[v].Distance {
 				if g.Verticies[v].BestVertex == current.ID {
@@ -34,7 +37,7 @@ func (g *Graph) Shortest(src, dest int) (BestPath, error) {
 			}
 		}
 	}
-	if !g.Visited[dest] {
+	if !visitedDest {
 		return BestPath{}, ErrNoPath
 	}
 	return g.bestPath(src, dest), nil

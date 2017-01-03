@@ -65,24 +65,13 @@ func assertErrNil(t *testing.T, err error) {
 }
 
 func assertGraphsEqual(t *testing.T, a, b Graph) {
-	if len(a.Verticies) != len(b.Verticies) || len(a.Visited) != len(b.Visited) || len(a.Visited) != len(b.Visited) {
+	if len(a.Verticies) != len(b.Verticies) {
 		t.Fatal("Error in graph sizes a size:", len(a.Verticies), "\tb size:", len(b.Verticies))
-	}
-	for i := range a.Visited {
-		if a.Visited[i] != b.Visited[i] {
-			t.Fatal("Index ", i, " not the same visited, a:", a.Visited, "\tb:", b.Visited)
-		}
-		if !reflect.DeepEqual(a.Verticies[i], b.Verticies[i]) {
-			t.Error("Index ", i, " not the same vertex, ",
-				"a:\n", fmt.Sprintf("%+v", a.Verticies[i]),
-				"\nb:\n", fmt.Sprintf("%+v", b.Verticies[i]))
-		}
 	}
 }
 
 func getAGraph() Graph {
 	return Graph{
-		make([]bool, 5),
 		[]Vertex{
 			Vertex{0, 0, 0, map[int]int64{
 				1: 4,
@@ -109,7 +98,6 @@ func getAGraph() Graph {
 
 func getBGraph() Graph {
 	return Graph{
-		make([]bool, 6),
 		[]Vertex{
 			Vertex{0, 0, 0, map[int]int64{
 				1: 4,
@@ -147,7 +135,6 @@ func getBSol() BestPath {
 
 func getCGraph() Graph {
 	return Graph{
-		make([]bool, 6),
 		[]Vertex{
 			Vertex{0, 0, 0, map[int]int64{
 				1: -4,
@@ -178,7 +165,6 @@ func getCGraph() Graph {
 
 func getGGraph() (Graph, map[string]int) {
 	return Graph{
-			make([]bool, 3),
 			[]Vertex{
 				Vertex{0, 0, 0, map[int]int64{
 					1: 2},
