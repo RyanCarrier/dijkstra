@@ -20,7 +20,7 @@ func (g *Graph) Shortest(src, dest int) (BestPath, error) {
 		if current.ID == dest {
 			visitedDest = true
 		}
-		if current.Distance > best {
+		if current.Distance >= best {
 			continue
 		}
 		for v, dist := range current.Arcs {
