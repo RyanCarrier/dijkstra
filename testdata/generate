@@ -1,0 +1,9 @@
+#!/bin/bash
+echo "Gen 4"
+go run generate.go 4
+echo "Gen 10"
+go run generate.go 10
+echo "Gen 100"
+go run generate.go 100
+echo "Gen 1000"
+go run generate.go 1000

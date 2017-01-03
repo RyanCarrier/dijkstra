@@ -57,8 +57,8 @@ func (g Graph) ExportToFile(filename string) error {
 	defer f.Close()
 	for _, v := range g.Verticies {
 		fmt.Fprint(f, v.ID)
-		for key, val := range v.Arcs {
-			fmt.Fprint(f, " ", key, ",", val)
+		for key := 0; key < len(v.Arcs); key++ {
+			fmt.Fprint(f, " ", key, ",", v.Arcs[key])
 		}
 		fmt.Fprint(f, "\n")
 	}

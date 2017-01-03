@@ -32,11 +32,11 @@ func main() {
 	for i = 0; i < nodes; i++ {
 		v = dijkstra.Vertex{ID: i}
 		v.Arcs = map[int]int64{}
-		for j := 0; j < nodes; j++ {
+		for j := 0; j <= nodes; j++ {
 			if j == i {
 				continue
 			}
-			v.Arcs[j] = max(int64(nodes-j)-rand.Int63n(int64(nodes)*int64(nodes-j)), 1)
+			v.Arcs[j] = int64(2*nodes-j) + rand.Int63n(int64(nodes)*int64(nodes-j+1))
 		}
 		graph.AddVerticies(v)
 	}
