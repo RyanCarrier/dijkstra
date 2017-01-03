@@ -10,10 +10,10 @@ import (
 func (g *Graph) Shortest(src, dest int) (BestPath, error) {
 	visitedDest := false
 	g.Visiting = NewList()
-	g.SetDefaults(int64(math.MaxInt64), -1)
+	g.SetDefaults(int64(math.MaxInt64)-1, -1)
 	g.Verticies[src].Distance = 0
 	g.Visiting.PushFront(&g.Verticies[src])
-	best := int64(math.MaxInt64) - 1
+	best := int64(math.MaxInt64)
 	var current *Vertex
 	for g.Visiting.Len() > 0 {
 		current = g.Visiting.PopFront()
