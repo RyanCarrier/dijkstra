@@ -8,6 +8,8 @@ import (
 
 //Graph contains all the graph details
 type Graph struct {
+	best        int64
+	visitedDest bool
 	//slice of all verticies available
 	Verticies []Vertex
 	Visiting  *List
@@ -31,7 +33,7 @@ func (g Graph) validate() error {
 }
 
 //SetDefaults sets the distance and best node to that specified
-func (g *Graph) SetDefaults(Distance int64, BestNode int) {
+func (g *Graph) setDefaults(Distance int64, BestNode int) {
 	for i := range g.Verticies {
 		g.Verticies[i].BestVertex = BestNode
 		g.Verticies[i].Distance = Distance

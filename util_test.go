@@ -72,6 +72,7 @@ func assertGraphsEqual(t *testing.T, a, b Graph) {
 
 func getAGraph() Graph {
 	return Graph{
+		0, false,
 		[]Vertex{
 			Vertex{0, 0, 0, map[int]int64{
 				1: 4,
@@ -98,6 +99,7 @@ func getAGraph() Graph {
 
 func getBGraph() Graph {
 	return Graph{
+		0, false,
 		[]Vertex{
 			Vertex{0, 0, 0, map[int]int64{
 				1: 4,
@@ -134,7 +136,7 @@ func getBSol() BestPath {
 }
 
 func getCGraph() Graph {
-	return Graph{
+	return Graph{0, false,
 		[]Vertex{
 			Vertex{0, 0, 0, map[int]int64{
 				1: -4,
@@ -165,6 +167,7 @@ func getCGraph() Graph {
 
 func getGGraph() (Graph, map[string]int) {
 	return Graph{
+			0, false,
 			[]Vertex{
 				Vertex{0, 0, 0, map[int]int64{
 					1: 2},
