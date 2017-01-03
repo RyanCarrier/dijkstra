@@ -8,6 +8,7 @@ import (
 
 	ar "github.com/albertorestifo/dijkstra"
 
+	pq "github.com/RyanCarrier/dijkstra-1"
 	mm "github.com/mattomatic/dijkstra/dijkstra"
 	mmg "github.com/mattomatic/dijkstra/graph"
 )
@@ -26,29 +27,29 @@ func BenchmarkRyanCarrierNodes10(b *testing.B)   { benchmarkAlt(b, "testdata/10.
 func BenchmarkRyanCarrierNodes100(b *testing.B)  { benchmarkAlt(b, "testdata/100.txt", 0) }
 func BenchmarkRyanCarrierNodes1000(b *testing.B) { benchmarkAlt(b, "testdata/1000.txt", 0) }
 
-/*
 func BenchmarkProfessorQNodes4(b *testing.B)    { benchmarkAlt(b, "testdata/4.txt", 1) }
 func BenchmarkProfessorQNodes10(b *testing.B)   { benchmarkAlt(b, "testdata/10.txt", 1) }
 func BenchmarkProfessorQNodes100(b *testing.B)  { benchmarkAlt(b, "testdata/100.txt", 1) }
 func BenchmarkProfessorQNodes1000(b *testing.B) { benchmarkAlt(b, "testdata/1000.txt", 1) }
-*/
 
 func BenchmarkAlbertoNodes4(b *testing.B)    { benchmarkAlt(b, "testdata/4.txt", 2) }
 func BenchmarkAlbertoNodes10(b *testing.B)   { benchmarkAlt(b, "testdata/10.txt", 2) }
 func BenchmarkAlbertoNodes100(b *testing.B)  { benchmarkAlt(b, "testdata/100.txt", 2) }
 func BenchmarkAlbertoNodes1000(b *testing.B) { benchmarkAlt(b, "testdata/1000.txt", 2) }
 
+/*
+//Mattomatics does not work.
 func BenchmarkMattomaticNodes4(b *testing.B)    { benchmarkAlt(b, "testdata/4.txt", 3) }
 func BenchmarkMattomaticNodes10(b *testing.B)   { benchmarkAlt(b, "testdata/10.txt", 3) }
 func BenchmarkMattomaticNodes100(b *testing.B)  { benchmarkAlt(b, "testdata/100.txt", 3) }
 func BenchmarkMattomaticNodes1000(b *testing.B) { benchmarkAlt(b, "testdata/1000.txt", 3) }
-
+*/
 func benchmarkAlt(b *testing.B, filename string, i int) {
 	switch i {
 	case 0:
 		benchmarkRC(b, filename)
-		//case 1:
-		//	benchmarkProfQ(b, filename)
+	case 1:
+		benchmarkProfQ(b, filename)
 	case 2:
 		benchmarkAR(b, filename)
 	case 3:
@@ -111,7 +112,6 @@ func benchmarkAR(b *testing.B, filename string) {
 	}
 }
 
-/*
 func benchmarkProfQ(b *testing.B, filename string) {
 	var g *pq.Graph
 	rcg, _, _ := Import(filename)
@@ -134,7 +134,7 @@ func benchmarkProfQ(b *testing.B, filename string) {
 	for i := 0; i < b.N; i++ {
 		pq.NewGraph(pqmap).ShortestPath(src, dest)
 	}
-}*/
+}
 
 func benchmarkRC(b *testing.B, filename string) {
 	graph, _, _ := Import(filename)
@@ -159,7 +159,6 @@ func setupAR(rcg Graph) ar.Graph {
 	return g
 }
 
-/*
 func setupPq(rcg Graph) map[int]pq.Vertex {
 	vs := map[int]pq.Vertex{}
 	for _, v := range rcg.Verticies {
@@ -172,7 +171,7 @@ func setupPq(rcg Graph) map[int]pq.Vertex {
 		vs[temp.ID] = temp
 	}
 	return vs
-}*/
+}
 
 func testSolution(t *testing.T, best BestPath, wanterr error, filename string, from, to int) {
 	graph, _, err := Import(filename)
