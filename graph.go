@@ -3,7 +3,7 @@ package dijkstra
 import (
 	"errors"
 	"fmt"
-	"math"
+	"os"
 )
 
 //Graph contains all the graph details
@@ -14,6 +14,12 @@ type Graph struct {
 	Verticies []Vertex
 
 	Visiting *List
+}
+
+//AddVerticies adds the listed verticies to the graph
+func (g *Graph) AddVerticies(v ...Vertex) {
+	g.Verticies = append(g.Verticies, v...)
+	g.Visited = append(g.Visited, make([]bool, len(v))...)
 }
 
 func (g Graph) validate() error {
@@ -31,18 +37,30 @@ func (g Graph) validate() error {
 	return nil
 }
 
-//SetMaxDistances sets all Vertex distances to the max of int64
-func (g *Graph) SetMaxDistances() {
-	g.setAllDistances(math.MaxInt64)
-}
-
-//SetMinDistances sets all Vertex distances to the min of int64
-func (g *Graph) SetMinDistances() {
-	g.setAllDistances(math.MinInt64)
-}
-
-func (g *Graph) setAllDistances(max int64) {
+//SetDefaults sets the distance and best node to that specified
+func (g *Graph) SetDefaults(Distance int64, BestNode int) {
 	for i := range g.Verticies {
-		g.Verticies[i].Distance = max
+		g.Verticies[i].BestVertex = BestNode
+		g.Verticies[i].Distance = Distance
 	}
+}
+
+//ExportToFile exports the verticies to file
+func (g Graph) ExportToFile(filename string) error {
+	if _, err := os.Stat(filename); err == nil {
+		os.Remove(filename)
+	}
+	f, err := os.OpenFile(filename, os.O_CREATE|os.O_RDWR|os.O_APPEND, 0666)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+	for _, v := range g.Verticies {
+		fmt.Fprint(f, v.ID)
+		for key, val := range v.Arcs {
+			fmt.Fprint(f, " ", key, ",", val)
+		}
+		fmt.Fprint(f, "\n")
+	}
+	return nil
 }

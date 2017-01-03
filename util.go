@@ -1,7 +1,6 @@
 package dijkstra
 
 import (
-	"fmt"
 	"io/ioutil"
 	"strconv"
 	"strings"
@@ -28,7 +27,6 @@ func Import(filename string) (g Graph, m map[string]int, err error) {
 		f := strings.Fields(line)
 		//no need to check for size cause there must be something as the string is trimmed and split
 		if mapping {
-			fmt.Println(m)
 			if i, ok = m[f[0]]; !ok {
 				m[f[0]] = lowestIndex
 				i = lowestIndex

@@ -138,6 +138,13 @@ func getBGraph() Graph {
 	}
 }
 
+func getBSol() BestPath {
+	return BestPath{
+		Distance: 15,
+		Path:     []int{0, 2, 1, 3, 5},
+	}
+}
+
 func getCGraph() Graph {
 	return Graph{
 		make([]bool, 6),
@@ -176,10 +183,10 @@ func getGGraph() (Graph, map[string]int) {
 				Vertex{0, 0, 0, map[int]int64{
 					1: 2},
 				},
-				Vertex{0, 0, 0, map[int]int64{
-					3: 5},
+				Vertex{1, 0, 0, map[int]int64{
+					2: 5},
 				},
-				Vertex{0, 0, 0, map[int]int64{
+				Vertex{2, 0, 0, map[int]int64{
 					0: 1,
 					1: 1},
 				},
