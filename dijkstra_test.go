@@ -1,7 +1,6 @@
 package dijkstra
 
 import (
-	"fmt"
 	"math"
 	"reflect"
 	"strconv"
@@ -105,8 +104,6 @@ func benchmarkAR(b *testing.B, filename string) {
 	if rcgot.Distance != int64(argot) {
 		b.Fatal("Distances do not match on iteration 2, RC:", rcgot.Distance, " AR:", argot)
 	}
-
-	fmt.Println("RC:", rcgot.Distance, "\tAR:", argot)
 	//====RESET TIMER BEFORE LOOP====
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
