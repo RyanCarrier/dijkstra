@@ -10,8 +10,7 @@ import (
 type Graph struct {
 	//slice of all verticies available
 	Verticies []Vertex
-
-	Visiting *List
+	Visiting  *List
 }
 
 //AddVerticies adds the listed verticies to the graph

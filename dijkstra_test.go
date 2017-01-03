@@ -1,7 +1,6 @@
 package dijkstra
 
 import (
-	"math"
 	"reflect"
 	"strconv"
 	"testing"
@@ -142,7 +141,6 @@ func benchmarkRC(b *testing.B, filename string) {
 	//====RESET TIMER BEFORE LOOP====
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		graph.SetDefaults(int64(math.MaxInt64), -1)
 		graph.Shortest(src, dest)
 	}
 }

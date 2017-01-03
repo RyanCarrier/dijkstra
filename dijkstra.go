@@ -13,15 +13,14 @@ func (g *Graph) Shortest(src, dest int) (BestPath, error) {
 	g.SetDefaults(int64(math.MaxInt64), -1)
 	g.Verticies[src].Distance = 0
 	g.Visiting.PushFront(&g.Verticies[src])
-	best := int64(math.MaxInt64)
-	bestSet := false
+	best := int64(math.MaxInt64) - 1
 	var current *Vertex
 	for g.Visiting.Len() > 0 {
 		current = g.Visiting.PopFront()
 		if current.ID == dest {
 			visitedDest = true
 		}
-		if bestSet && current.Distance > best {
+		if current.Distance > best {
 			continue
 		}
 		for v, dist := range current.Arcs {
@@ -33,6 +32,9 @@ func (g *Graph) Shortest(src, dest int) (BestPath, error) {
 				}
 				g.Verticies[v].Distance = current.Distance + dist
 				g.Verticies[v].BestVertex = current.ID
+				if v == dest {
+					best = current.Distance + dist
+				}
 				g.Visiting.PushOrdered(&g.Verticies[v])
 			}
 		}
