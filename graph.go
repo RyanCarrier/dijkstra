@@ -12,7 +12,7 @@ type Graph struct {
 	visitedDest bool
 	//slice of all verticies available
 	Verticies []Vertex
-	Visiting  *LinkedList
+	Visiting  *linkedList
 	mapping   map[string]int
 	usingMap  bool
 }
