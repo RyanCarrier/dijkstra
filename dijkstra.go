@@ -7,6 +7,11 @@ func (g *Graph) Shortest(src, dest int) (BestPath, error) {
 	return g.evaluate(src, dest, true)
 }
 
+//Longest calculates the longest path from src to dest
+func (g *Graph) Longest(src, dest int) (BestPath, error) {
+	return g.evaluate(src, dest, false)
+}
+
 func (g *Graph) finally(src, dest int) (BestPath, error) {
 	if !g.visitedDest {
 		return BestPath{}, ErrNoPath
@@ -16,7 +21,7 @@ func (g *Graph) finally(src, dest int) (BestPath, error) {
 
 func (g *Graph) setup(shortest bool, src int) {
 	//Get a new list regardless
-	g.Visiting = NewList()
+	g.Visiting = NewLinkedList()
 	//Reset state
 	g.visitedDest = false
 	//Reset the best current value (worst so it gets overwritten)
@@ -84,11 +89,6 @@ func (g *Graph) evaluate(src, dest int, shortest bool) (BestPath, error) {
 		}
 	}
 	return g.finally(src, dest)
-}
-
-//Longest calculates the longest path from src to dest
-func (g *Graph) Longest(src, dest int) (BestPath, error) {
-	return g.evaluate(src, dest, false)
 }
 
 //BestPath contains the solution of the most optimal path

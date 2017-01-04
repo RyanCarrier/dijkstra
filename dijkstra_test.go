@@ -59,7 +59,7 @@ func benchmarkAlt(b *testing.B, filename string, i int) {
 }
 
 func benchmarkMM(b *testing.B, filename string) {
-	rcg, _, _ := Import(filename)
+	rcg, _ := Import(filename)
 	mg := mmg.LoadGraph(filename)
 	rcsrc, rcdest := 0, len(rcg.Verticies)-1
 	_, dest := 0, mg.Size()-1
@@ -90,7 +90,7 @@ func benchmarkMM(b *testing.B, filename string) {
 }
 
 func benchmarkAR(b *testing.B, filename string) {
-	rcg, _, _ := Import(filename)
+	rcg, _ := Import(filename)
 	arg := setupAR(rcg)
 	rcsrc, rcdest := 0, len(rcg.Verticies)-1
 	src, dest := "0", strconv.Itoa(rcdest)
@@ -113,7 +113,7 @@ func benchmarkAR(b *testing.B, filename string) {
 
 func benchmarkProfQ(b *testing.B, filename string) {
 	var g *pq.Graph
-	rcg, _, _ := Import(filename)
+	rcg, _ := Import(filename)
 	pqmap := setupPq(rcg)
 	g = pq.NewGraph(pqmap)
 	src, dest := 0, g.Len()-1
@@ -136,7 +136,7 @@ func benchmarkProfQ(b *testing.B, filename string) {
 }
 
 func benchmarkRC(b *testing.B, filename string) {
-	graph, _, _ := Import(filename)
+	graph, _ := Import(filename)
 	src, dest := 0, len(graph.Verticies)-1
 	//====RESET TIMER BEFORE LOOP====
 	b.ResetTimer()
@@ -172,7 +172,7 @@ func setupPq(rcg Graph) map[int]pq.Vertex {
 }
 
 func testSolution(t *testing.T, best BestPath, wanterr error, filename string, from, to int) {
-	graph, _, err := Import(filename)
+	graph, err := Import(filename)
 	if err != nil {
 		t.Error(err)
 	}

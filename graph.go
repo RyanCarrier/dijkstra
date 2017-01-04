@@ -12,7 +12,27 @@ type Graph struct {
 	visitedDest bool
 	//slice of all verticies available
 	Verticies []Vertex
-	Visiting  *List
+	Visiting  *LinkedList
+	mapping   map[string]int
+	usingMap  bool
+}
+
+//GetMapped gets the key assosciated with the mapped int
+func (g *Graph) GetMapped(a int) (string, error) {
+	for k, v := range g.mapping {
+		if v == a {
+			return k, nil
+		}
+	}
+	return "", errors.New(fmt.Sprint(a, " not found in mapping"))
+}
+
+//GetMapping gets the index associated with the specified key
+func (g *Graph) GetMapping(a string) (int, error) {
+	if b, ok := g.mapping[a]; ok {
+		return b, nil
+	}
+	return -1, errors.New(fmt.Sprint(a, " not found in mapping"))
 }
 
 //AddVerticies adds the listed verticies to the graph

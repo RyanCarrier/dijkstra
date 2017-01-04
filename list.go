@@ -13,7 +13,7 @@ type Element struct {
 	next, prev *Element
 
 	// The list to which this element belongs.
-	list *List
+	list *LinkedList
 
 	// The value stored with this element.
 	Value *Vertex
@@ -35,30 +35,30 @@ func (e *Element) Prev() *Element {
 	return nil
 }
 
-// List represents a doubly linked list.
-// The zero value for List is an empty list ready to use.
-type List struct {
+// LinkedList represents a doubly linked list.
+// The zero value for LinkedList is an empty list ready to use.
+type LinkedList struct {
 	root Element // sentinel list element, only &root, root.prev, and root.next are used
 	len  int     // current list length excluding (this) sentinel element
 }
 
 // Init initializes or clears list l.
-func (l *List) Init() *List {
+func (l *LinkedList) Init() *LinkedList {
 	l.root.next = &l.root
 	l.root.prev = &l.root
 	l.len = 0
 	return l
 }
 
-// NewList returns an initialized list.
-func NewList() *List { return new(List).Init() }
+// NewLinkedList returns an initialized list.
+func NewLinkedList() *LinkedList { return new(LinkedList).Init() }
 
 // Len returns the number of elements of list l.
 // The complexity is O(1).
-func (l *List) Len() int { return l.len }
+func (l *LinkedList) Len() int { return l.len }
 
 // Front returns the first element of list l or nil.
-func (l *List) Front() *Element {
+func (l *LinkedList) Front() *Element {
 	if l.len == 0 {
 		return nil
 	}
@@ -66,20 +66,26 @@ func (l *List) Front() *Element {
 }
 
 //PopFront pops the Vertex off the front of the list
-func (l *List) PopFront() *Vertex {
-	return l.Remove(l.Front())
+func (l *LinkedList) PopFront() *Vertex {
+	e := l.Front()
+	if e.list == l {
+		// if e.list == l, l must have been initialized when e was inserted
+		// in l or l == nil (e is a zero Element) and l.remove will crash
+		l.remove(e)
+	}
+	return e.Value
 }
 
 // Back returns the last element of list l or nil.
-func (l *List) Back() *Element {
+func (l *LinkedList) Back() *Element {
 	if l.len == 0 {
 		return nil
 	}
 	return l.root.prev
 }
 
-// lazyInit lazily initializes a zero List value.
-func (l *List) lazyInit() {
+// lazyInit lazily initializes a zero LinkedList value.
+func (l *LinkedList) lazyInit() {
 	if l.root.next == nil {
 		l.Init()
 	}
@@ -87,13 +93,14 @@ func (l *List) lazyInit() {
 
 //PushOrdered pushes the value into the linked list in the correct position
 // (ascending)
-func (l *List) PushOrdered(v *Vertex) *Element {
+func (l *LinkedList) PushOrdered(v *Vertex) *Element {
+	l.lazyInit()
 	if l.Len() == 0 {
 		return l.PushFront(v)
 	}
 	back := l.Back()
 	if back.Value.Distance < v.Distance {
-		return l.PushBack(v)
+		return l.insertValue(v, l.root.prev)
 	}
 	current := l.Front()
 	for current.Value.Distance < v.Distance { //don't need to chack if current=back cause back already checked
@@ -103,7 +110,7 @@ func (l *List) PushOrdered(v *Vertex) *Element {
 }
 
 // insert inserts e after at, increments l.len, and returns e.
-func (l *List) insert(e, at *Element) *Element {
+func (l *LinkedList) insert(e, at *Element) *Element {
 	n := at.next
 	at.next = e
 	e.prev = at
@@ -115,12 +122,12 @@ func (l *List) insert(e, at *Element) *Element {
 }
 
 // insertValue is a convenience wrapper for insert(&Element{Value: v}, at).
-func (l *List) insertValue(v *Vertex, at *Element) *Element {
+func (l *LinkedList) insertValue(v *Vertex, at *Element) *Element {
 	return l.insert(&Element{Value: v}, at)
 }
 
 // remove removes e from its list, decrements l.len, and returns e.
-func (l *List) remove(e *Element) *Element {
+func (l *LinkedList) remove(e *Element) *Element {
 	e.prev.next = e.next
 	e.next.prev = e.prev
 	e.next = nil // avoid memory leaks
@@ -130,55 +137,8 @@ func (l *List) remove(e *Element) *Element {
 	return e
 }
 
-// Remove removes e from l if e is an element of list l.
-// It returns the element value e.Value.
-func (l *List) Remove(e *Element) *Vertex {
-	if e.list == l {
-		// if e.list == l, l must have been initialized when e was inserted
-		// in l or l == nil (e is a zero Element) and l.remove will crash
-		l.remove(e)
-	}
-	return e.Value
-}
-
 // PushFront inserts a new element e with value v at the front of list l and returns e.
-func (l *List) PushFront(v *Vertex) *Element {
+func (l *LinkedList) PushFront(v *Vertex) *Element {
 	l.lazyInit()
 	return l.insertValue(v, &l.root)
-}
-
-// PushBack inserts a new element e with value v at the back of list l and returns e.
-func (l *List) PushBack(v *Vertex) *Element {
-	l.lazyInit()
-	return l.insertValue(v, l.root.prev)
-}
-
-// InsertBefore inserts a new element e with value v immediately before mark and returns e.
-// If mark is not an element of l, the list is not modified.
-func (l *List) InsertBefore(v *Vertex, mark *Element) *Element {
-	if mark.list != l {
-		return nil
-	}
-	// see comment in List.Remove about initialization of l
-	return l.insertValue(v, mark.prev)
-}
-
-// InsertAfter inserts a new element e with value v immediately after mark and returns e.
-// If mark is not an element of l, the list is not modified.
-func (l *List) InsertAfter(v *Vertex, mark *Element) *Element {
-	if mark.list != l {
-		return nil
-	}
-	// see comment in List.Remove about initialization of l
-	return l.insertValue(v, mark)
-}
-
-// MoveToFront moves element e to the front of list l.
-// If e is not an element of l, the list is not modified.
-func (l *List) MoveToFront(e *Element) {
-	if e.list != l || l.root.next == e {
-		return
-	}
-	// see comment in List.Remove about initialization of l
-	l.insert(l.remove(e), &l.root)
 }

@@ -8,8 +8,8 @@ import (
 
 //Import imports a graph from the specified file returns the Graph, a map for
 // if the nodes are not integers and an error if needed.
-func Import(filename string) (g Graph, m map[string]int, err error) {
-	mapping := false
+func Import(filename string) (g Graph, err error) {
+	g.usingMap = false
 	var lowestIndex int
 	var i int
 	var arc int
@@ -19,24 +19,24 @@ func Import(filename string) (g Graph, m map[string]int, err error) {
 	if err != nil {
 		return
 	}
-	m = map[string]int{}
-	g.Visiting = NewList()
+	g.mapping = map[string]int{}
+	g.Visiting = NewLinkedList()
 
 	input := strings.TrimSpace(string(got))
 	for _, line := range strings.Split(input, "\n") {
 		f := strings.Fields(line)
 		//no need to check for size cause there must be something as the string is trimmed and split
-		if mapping {
-			if i, ok = m[f[0]]; !ok {
-				m[f[0]] = lowestIndex
+		if g.usingMap {
+			if i, ok = g.mapping[f[0]]; !ok {
+				g.mapping[f[0]] = lowestIndex
 				i = lowestIndex
 				lowestIndex++
 			}
 		} else {
 			i, err = strconv.Atoi(f[0])
 			if err != nil {
-				mapping = true
-				m[f[0]] = lowestIndex
+				g.usingMap = true
+				g.mapping[f[0]] = lowestIndex
 				i = lowestIndex
 				lowestIndex++
 			}
@@ -48,8 +48,6 @@ func Import(filename string) (g Graph, m map[string]int, err error) {
 				g.Verticies[temp].Arcs = map[int]int64{}
 			}
 		}
-		//g.Verticies[i].ID = i
-		//g.Verticies[i].Arcs = map[int]int64{}
 		if len(f) == 1 {
 			//if there is no FROM here
 			continue
@@ -65,11 +63,11 @@ func Import(filename string) (g Graph, m map[string]int, err error) {
 				err = ErrWrongFormat
 				return
 			}
-			if mapping {
-				arc, ok = m[got[0]]
+			if g.usingMap {
+				arc, ok = g.mapping[got[0]]
 				if !ok {
 					arc = lowestIndex
-					m[got[0]] = arc
+					g.mapping[got[0]] = arc
 					lowestIndex++
 				}
 			} else {

@@ -12,7 +12,7 @@ func TestWrongFormat(t *testing.T) {
 }
 
 func testWrongFormat(t *testing.T, filename string) {
-	_, _, err := Import(filename)
+	_, err := Import(filename)
 	testErrors(t, ErrWrongFormat, err)
 }
 
@@ -24,7 +24,7 @@ func TestCorrectFormatNegatives(t *testing.T) {
 	test(t, getCGraph(), map[string]int{}, nil, "testdata/C.txt")
 }
 func TestMixingIntString(t *testing.T) {
-	_, _, err := Import("testdata/H.txt")
+	_, err := Import("testdata/H.txt")
 	testErrors(t, ErrMixMapping, err)
 }
 func TestImportCorrectMap(t *testing.T) {
@@ -33,7 +33,8 @@ func TestImportCorrectMap(t *testing.T) {
 }
 
 func test(t *testing.T, wantgraph Graph, wantmap map[string]int, wanterr error, filename string) {
-	graph, gmap, err := Import(filename)
+	graph, err := Import(filename)
+	gmap := graph.mapping
 	testErrors(t, wanterr, err)
 	if !reflect.DeepEqual(gmap, wantmap) {
 		t.Fatal("maps are different",
@@ -93,7 +94,9 @@ func getAGraph() Graph {
 				3: 1},
 			},
 		},
-		NewList(),
+		NewLinkedList(),
+		map[string]int{},
+		false,
 	}
 }
 
@@ -124,7 +127,9 @@ func getBGraph() Graph {
 				3: 10},
 			},
 		},
-		NewList(),
+		NewLinkedList(),
+		map[string]int{},
+		false,
 	}
 }
 
@@ -161,7 +166,9 @@ func getCGraph() Graph {
 				3: -10},
 			},
 		},
-		NewList(),
+		NewLinkedList(),
+		map[string]int{},
+		false,
 	}
 }
 
@@ -180,7 +187,9 @@ func getGGraph() (Graph, map[string]int) {
 					1: 1},
 				},
 			},
-			NewList(),
+			NewLinkedList(),
+			map[string]int{},
+			false,
 		}, map[string]int{
 			"A": 0,
 			"B": 1,
