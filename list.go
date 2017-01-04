@@ -2,6 +2,8 @@ package dijkstra
 
 //THE FOLLOWING FILE IS BASED FROM GO AUTHORS EDITED MINORLY AND LAZILY TO SUIT MY NEEDS
 //https://golang.org/src/container/list/list.go?m=text
+//AVOID USING MINE AS A TEMPLATE AS I REMOVED MOST SAFETIES (that's why they are
+// all private now)
 
 // element is an element of a linked list.
 type element struct {
