@@ -19,6 +19,9 @@ type Graph struct {
 
 //GetMapped gets the key assosciated with the mapped int
 func (g *Graph) GetMapped(a int) (string, error) {
+	if !g.usingMap {
+		return "", errors.New("Map is not being used/initialised")
+	}
 	for k, v := range g.mapping {
 		if v == a {
 			return k, nil
@@ -29,15 +32,13 @@ func (g *Graph) GetMapped(a int) (string, error) {
 
 //GetMapping gets the index associated with the specified key
 func (g *Graph) GetMapping(a string) (int, error) {
+	if !g.usingMap {
+		return -1, errors.New("Map is not being used/initialised")
+	}
 	if b, ok := g.mapping[a]; ok {
 		return b, nil
 	}
 	return -1, errors.New(fmt.Sprint(a, " not found in mapping"))
-}
-
-//AddVerticies adds the listed verticies to the graph
-func (g *Graph) AddVerticies(v ...Vertex) {
-	g.Verticies = append(g.Verticies, v...)
 }
 
 func (g Graph) validate() error {
@@ -62,6 +63,7 @@ func (g *Graph) setDefaults(Distance int64, BestNode int) {
 
 //ExportToFile exports the verticies to file
 func (g Graph) ExportToFile(filename string) error {
+	//TODO ADD MAP STUFF
 	if _, err := os.Stat(filename); err == nil {
 		os.Remove(filename)
 	}

@@ -11,3 +11,8 @@ type Vertex struct {
 	//A set of all weights to the nodes in the map
 	Arcs map[int]int64
 }
+
+//AddVerticies adds the listed verticies to the graph
+func (g *Graph) AddVerticies(v ...Vertex) {
+	g.Verticies = append(g.Verticies, v...)
+}
