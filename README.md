@@ -7,8 +7,7 @@ Benchmark comparisons to the other two top golang dijkstra implementations;
 ```go test -bench .```
 
 ![Wow so fast](/speed.png?raw=true "Benchmarks")
-
-![Wow the multiply!](/multiply.png?raw=true "Multiply")
+![Wow the multiply!](/mult.png?raw=true "Multiply")
 
 Oddly the speed benefit seems to diminish as the nodes get higher, this could be
  due to the fact that the linked list places the to be visited node in the correct
