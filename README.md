@@ -5,6 +5,7 @@ Golangs fastest Dijkstra's shortest (and longest) path calculator, requires go 1
 Benchmark comparisons to the other two top golang dijkstra implementations;
 
 ```go test -bench .```
+
 ![Wow so fast](/speed.png?raw=true "Benchmarks")
 ![Wow the multiply!](/multiply.png?raw=true "Multipy")
 
