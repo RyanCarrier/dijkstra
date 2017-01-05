@@ -22,7 +22,7 @@ func NewVertex(ID int) *Vertex {
 func (g *Graph) AddVerticies(verticies ...Vertex) {
 	for _, v := range verticies {
 		if v.ID >= len(g.Verticies) {
-			newV := make([]Vertex, v.ID-len(g.Verticies))
+			newV := make([]Vertex, v.ID+1-len(g.Verticies))
 			g.Verticies = append(g.Verticies, newV...)
 		}
 		g.Verticies[v.ID] = v

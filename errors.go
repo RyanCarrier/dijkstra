@@ -14,7 +14,8 @@ var ErrNoPath = errors.New("No path found")
 //ErrMixMapping is thrown when there is a mixture of integers and strings in the input file
 var ErrMixMapping = errors.New("Potential mixing of integer and string node ID's :" + ErrWrongFormat.Error())
 
-//ErrLoopDetected is thrown when a loop is detected, causing the distance to go to infinity
+//ErrLoopDetected is thrown when a loop is detected, causing the distance to go
+// to inf (or -inf), or just generally loop forever
 var ErrLoopDetected = errors.New("Infinite loop detected")
 
 //NewErrLoop generates a new error with details for loop error

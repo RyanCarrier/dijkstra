@@ -14,8 +14,12 @@ import (
 
 //pq "github.com/Professorq/dijkstra"
 
-func TestFailure(t *testing.T) {
+func TestNoPath(t *testing.T) {
 	testSolution(t, BestPath{}, ErrNoPath, "testdata/I.txt", 0, 4)
+}
+
+func TestLoop(t *testing.T) {
+	testSolution(t, BestPath{}, newErrLoop(1, 2), "testdata/J.txt", 0, 4)
 }
 
 func TestCorrect(t *testing.T) {

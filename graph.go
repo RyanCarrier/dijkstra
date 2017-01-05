@@ -55,7 +55,6 @@ func (g Graph) validate() error {
 	for _, v := range g.Verticies {
 		for a := range v.arcs {
 			if a >= len(g.Verticies) || (g.Verticies[a].ID == 0 && a != 0) {
-				fmt.Printf("%+v", g)
 				return errors.New(fmt.Sprint("Graph validation error;", "Vertex ", a, " referenced in arcs by Vertex ", v.ID))
 			}
 		}
