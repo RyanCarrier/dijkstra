@@ -150,7 +150,7 @@ func setupAR(rcg Graph) ar.Graph {
 	for _, v := range rcg.Verticies {
 		sv := strconv.Itoa(v.ID)
 		g[sv] = map[string]int{}
-		for key, val := range v.Arcs {
+		for key, val := range v.arcs {
 			g[sv][strconv.Itoa(key)] = int(val)
 		}
 	}
@@ -163,7 +163,7 @@ func setupPq(rcg Graph) map[int]pq.Vertex {
 		temp := pq.Vertex{}
 		temp.ID = v.ID
 		temp.Arcs = map[int]int{}
-		for key, val := range v.Arcs {
+		for key, val := range v.arcs {
 			temp.Arcs[key] = int(val)
 		}
 		vs[temp.ID] = temp

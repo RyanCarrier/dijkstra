@@ -97,6 +97,7 @@ func getAGraph() Graph {
 		newLinkedList(),
 		map[string]int{},
 		false,
+		0,
 	}
 }
 
@@ -130,6 +131,7 @@ func getBGraph() Graph {
 		newLinkedList(),
 		map[string]int{},
 		false,
+		0,
 	}
 }
 
@@ -169,6 +171,7 @@ func getCGraph() Graph {
 		newLinkedList(),
 		map[string]int{},
 		false,
+		0,
 	}
 }
 
@@ -190,6 +193,7 @@ func getGGraph() (Graph, map[string]int) {
 			newLinkedList(),
 			map[string]int{},
 			false,
+			0,
 		}, map[string]int{
 			"A": 0,
 			"B": 1,

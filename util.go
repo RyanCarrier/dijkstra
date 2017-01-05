@@ -45,7 +45,7 @@ func Import(filename string) (g Graph, err error) {
 			g.Verticies = append(g.Verticies, make([]Vertex, 1+i-len(g.Verticies))...)
 			for ; temp < len(g.Verticies); temp++ {
 				g.Verticies[temp].ID = temp
-				g.Verticies[temp].Arcs = map[int]int64{}
+				g.Verticies[temp].arcs = map[int]int64{}
 			}
 		}
 		if len(f) == 1 {
@@ -77,7 +77,7 @@ func Import(filename string) (g Graph, err error) {
 					return
 				}
 			}
-			g.Verticies[i].Arcs[arc] = dist
+			g.Verticies[i].arcs[arc] = dist
 		}
 	}
 	err = g.validate()

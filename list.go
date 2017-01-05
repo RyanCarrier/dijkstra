@@ -81,11 +81,11 @@ func (l *linkedList) pushOrdered(v *Vertex) *element {
 		return l.pushFront(v)
 	}
 	back := l.back()
-	if back.Value.Distance < v.Distance {
+	if back.Value.distance < v.distance {
 		return l.insertValue(v, l.root.prev)
 	}
 	current := l.front()
-	for current.Value.Distance < v.Distance { //don't need to chack if current=back cause back already checked
+	for current.Value.distance < v.distance { //don't need to chack if current=back cause back already checked
 		current = current.next
 	}
 	return l.insertValue(v, current.prev)

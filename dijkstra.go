@@ -35,21 +35,21 @@ func (g *Graph) setup(shortest bool, src int) {
 		g.best = int64(math.MinInt64)
 	}
 	//Set the distance of initial vertex 0
-	g.Verticies[src].Distance = 0
+	g.Verticies[src].distance = 0
 	//Add the source vertex to the list
 	g.Visiting.pushFront(&g.Verticies[src])
 }
 
 func (g *Graph) bestPath(src, dest int) BestPath {
 	var path []int
-	for c := g.Verticies[dest]; c.ID != src; c = g.Verticies[c.BestVertex] {
+	for c := g.Verticies[dest]; c.ID != src; c = g.Verticies[c.bestVertex] {
 		path = append(path, c.ID)
 	}
 	path = append(path, src)
 	for i, j := 0, len(path)-1; i < j; i, j = i+1, j-1 {
 		path[i], path[j] = path[j], path[i]
 	}
-	return BestPath{g.Verticies[dest].Distance, path}
+	return BestPath{g.Verticies[dest].distance, path}
 }
 
 func (g *Graph) evaluate(src, dest int, shortest bool) (BestPath, error) {
@@ -64,23 +64,23 @@ func (g *Graph) evaluate(src, dest int, shortest bool) (BestPath, error) {
 			g.visitedDest = true
 		}
 		//If the current distance is already worse than the best try another Vertex
-		if (shortest && current.Distance >= g.best) || (!shortest && current.Distance <= g.best) {
+		if (shortest && current.distance >= g.best) || (!shortest && current.distance <= g.best) {
 			continue
 		}
-		for v, dist := range current.Arcs {
+		for v, dist := range current.arcs {
 			//If the arc has better access, than the current best, update the Vertex being touched
-			if (shortest && current.Distance+dist < g.Verticies[v].Distance) ||
-				(!shortest && current.Distance+dist > g.Verticies[v].Distance) {
-				if g.Verticies[v].BestVertex == current.ID {
+			if (shortest && current.distance+dist < g.Verticies[v].distance) ||
+				(!shortest && current.distance+dist > g.Verticies[v].distance) {
+				if g.Verticies[v].bestVertex == current.ID {
 					//This seems familiar 8^)
 					return BestPath{}, newErrLoop(current.ID, v)
 				}
-				g.Verticies[v].Distance = current.Distance + dist
-				g.Verticies[v].BestVertex = current.ID
+				g.Verticies[v].distance = current.distance + dist
+				g.Verticies[v].bestVertex = current.ID
 				if v == dest {
 					//If this is the destination update best, so we can stop looking at
 					// useless Verticies
-					g.best = current.Distance + dist
+					g.best = current.distance + dist
 				}
 				//Push this updated Vertex into the list to be evaluated, pushes in
 				// sorted form
