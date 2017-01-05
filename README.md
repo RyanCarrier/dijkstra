@@ -49,6 +49,7 @@ func main(){
 
 Once the graph is created, shortest or longest paths between two points can be generated.
 ```go
+
 best, err := graph.Shortest(0,2)
 if err!=nil{
   log.Fatal(err)
@@ -59,4 +60,6 @@ best, err := graph.Longest(0,2)
 if err!=nil{
   log.Fatal(err)
 }
-fmt.Println("Longest distance ", best.Distance, " following path ", best.Path)```
+fmt.Println("Longest distance ", best.Distance, " following path ", best.Path)
+
+```

@@ -28,27 +28,23 @@ func TestCorrect(t *testing.T) {
 	testSolution(t, getKSolLong(), nil, "testdata/K.txt", 0, 4, false)
 	testSolution(t, getKSolShort(), nil, "testdata/K.txt", 0, 4, true)
 }
-func BenchmarkRyanCarrierNodes4(b *testing.B)    { benchmarkAlt(b, 4, 0) }
-func BenchmarkRyanCarrierNodes10(b *testing.B)   { benchmarkAlt(b, 10, 0) }
-func BenchmarkRyanCarrierNodes100(b *testing.B)  { benchmarkAlt(b, 100, 0) }
-func BenchmarkRyanCarrierNodes1000(b *testing.B) { benchmarkAlt(b, 1000, 0) }
 
-func BenchmarkProfessorQNodes4(b *testing.B)    { benchmarkAlt(b, 4, 1) }
-func BenchmarkProfessorQNodes10(b *testing.B)   { benchmarkAlt(b, 10, 1) }
-func BenchmarkProfessorQNodes100(b *testing.B)  { benchmarkAlt(b, 100, 1) }
-func BenchmarkProfessorQNodes1000(b *testing.B) { benchmarkAlt(b, 1000, 1) }
+var benchNames = []string{"github.com/RyanCarrier", "github.com/ProfessorQ", "github.com/albertorestifo"}
+var benchSet = []int{1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048}
 
-func BenchmarkAlbertoNodes4(b *testing.B)    { benchmarkAlt(b, 4, 2) }
-func BenchmarkAlbertoNodes10(b *testing.B)   { benchmarkAlt(b, 10, 2) }
-func BenchmarkAlbertoNodes100(b *testing.B)  { benchmarkAlt(b, 100, 2) }
-func BenchmarkAlbertoNodes1000(b *testing.B) { benchmarkAlt(b, 1000, 2) }
+func BenchmarkAll(b *testing.B) {
+	for i, n := range benchNames {
+		for _, nodes := range benchSet {
+			b.Run(n+"/"+strconv.Itoa(nodes)+"Nodes", func(b *testing.B) {
+				benchmarkAlt(b, nodes, i)
+			})
+		}
+	}
+}
 
 /*
 //Mattomatics does not work.
 func BenchmarkMattomaticNodes4(b *testing.B)    { benchmarkAlt(b, 4, 3) }
-func BenchmarkMattomaticNodes10(b *testing.B)   { benchmarkAlt(b, 10, 3) }
-func BenchmarkMattomaticNodes100(b *testing.B)  { benchmarkAlt(b, 100, 3) }
-func BenchmarkMattomaticNodes1000(b *testing.B) { benchmarkAlt(b, 1000, 3) }
 */
 func benchmarkAlt(b *testing.B, nodes, i int) {
 	filename := "testdata/bench/" + strconv.Itoa(nodes) + ".txt"
