@@ -18,6 +18,29 @@ func TestGetVertex(t *testing.T) {
 		t.Error("Vertex should not be found (100)")
 	}
 }
+func TestAddVertex(t *testing.T) {
+	g := NewGraph()
+	g.AddVertex(99)
+	got, err := g.GetVertex(98)
+	if got.ID == 99 || err != nil {
+		t.Error("should not have had ID set and err should be nil")
+	}
+	for i := 0; i <= 10; i++ {
+		g.AddVertex(i)
+	}
+	v := g.AddNewVertex()
+	if v.ID != 11 {
+		t.Error("Adding self assigned vertex fail")
+	}
+	g = NewGraph()
+	for i := 0; i <= 10; i++ {
+		g.AddNewVertex()
+	}
+	if v = g.AddNewVertex(); v.ID != 11 {
+		t.Error("Adding self assigned vertex fail when extending slice")
+	}
+
+}
 
 func TestValidateCorrect(t *testing.T) {
 	if newGraph().validate() != nil {
