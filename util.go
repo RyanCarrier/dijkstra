@@ -24,7 +24,7 @@ func Import(filename string) (g Graph, err error) {
 
 	input := strings.TrimSpace(string(got))
 	for _, line := range strings.Split(input, "\n") {
-		f := strings.Fields(line)
+		f := strings.Fields(strings.TrimSpace(line))
 		//no need to check for size cause there must be something as the string is trimmed and split
 		if g.usingMap {
 			if i, ok = g.mapping[f[0]]; !ok {

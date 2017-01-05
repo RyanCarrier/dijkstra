@@ -32,8 +32,12 @@ func TestImportCorrectMap(t *testing.T) {
 	wantgraph, wantmap := getGGraph()
 	test(t, wantgraph, wantmap, nil, "testdata/G.txt")
 	f := "testdata/L.txt"
-	_, err := Import(f)
-	testErrors(t, nil, err, f)
+	test(t, Graph{
+		Verticies: []Vertex{Vertex{ID: 0}, Vertex{ID: 1}, Vertex{ID: 2}}},
+		map[string]int{
+			"A": 0, "B": 1, "C": 2,
+		}, nil, f)
+
 }
 
 func TestImportNoFile(t *testing.T) {
