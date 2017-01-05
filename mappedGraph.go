@@ -7,7 +7,7 @@ import (
 
 //GetMapped gets the key assosciated with the mapped int
 func (g *Graph) GetMapped(a int) (string, error) {
-	if !g.usingMap {
+	if !g.usingMap || g.mapping == nil {
 		return "", errors.New("Map is not being used/initialised")
 	}
 	for k, v := range g.mapping {
@@ -20,7 +20,7 @@ func (g *Graph) GetMapped(a int) (string, error) {
 
 //GetMapping gets the index associated with the specified key
 func (g *Graph) GetMapping(a string) (int, error) {
-	if !g.usingMap {
+	if !g.usingMap || g.mapping == nil {
 		return -1, errors.New("Map is not being used/initialised")
 	}
 	if b, ok := g.mapping[a]; ok {
@@ -32,14 +32,18 @@ func (g *Graph) GetMapping(a string) (int, error) {
 //AddMappedVertex adds a new Vertex with a mapped ID (or returns the index if
 // ID already exists).
 func (g *Graph) AddMappedVertex(ID string) int {
+	if !g.usingMap || g.mapping == nil {
+		g.usingMap = true
+		g.mapping = map[string]int{}
+		g.highestMapIndex = 0
+	}
 	if i, ok := g.mapping[ID]; ok {
 		return i
 	}
 	i := g.highestMapIndex
 	g.highestMapIndex++
 	g.mapping[ID] = i
-	g.Verticies[i] = Vertex{ID: i}
-	return i
+	return g.AddVertex(i).ID
 }
 
 //AddMappedArc adds a new Arc from Source to Destination, for when verticies are

@@ -14,7 +14,7 @@ type Vertex struct {
 
 //NewVertex creates a new vertex
 func NewVertex(ID int) *Vertex {
-	return &Vertex{ID: ID}
+	return &Vertex{ID: ID, arcs: map[int]int64{}}
 }
 
 //AddVerticies adds the listed verticies to the graph, overwrites any existing
@@ -35,6 +35,9 @@ func (g *Graph) AddVerticies(verticies ...Vertex) {
 // Vertex in the graph. Note that AddArc will overwrite any existing distance set
 // if there is already an arc set to Destination.
 func (v *Vertex) AddArc(Destination int, Distance int64) {
+	if v.arcs == nil {
+		v.arcs = map[int]int64{}
+	}
 	v.arcs[Destination] = Distance
 }
 
@@ -48,6 +51,9 @@ func (v *Vertex) RemoveArc(Destination int) {
 
 //GetArc gets the specified arc to Destination, bool is false if no arc found
 func (v *Vertex) GetArc(Destination int) (distance int64, ok bool) {
+	if v.arcs == nil {
+		return 0, false
+	}
 	//idk why but doesn't work on one line?
 	distance, ok = v.arcs[Destination]
 	return
