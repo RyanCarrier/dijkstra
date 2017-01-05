@@ -58,6 +58,17 @@ func (l *linkedList) popFront() *Vertex {
 	return e.Value
 }
 
+//popFront pops the Vertex off the front of the list
+func (l *linkedList) popBack() *Vertex {
+	e := l.back()
+	if e.list == l {
+		// if e.list == l, l must have been initialized when e was inserted
+		// in l or l == nil (e is a zero element) and l.remove will crash
+		l.remove(e)
+	}
+	return e.Value
+}
+
 // back returns the last element of list l or nil.
 func (l *linkedList) back() *element {
 	if l.len == 0 {

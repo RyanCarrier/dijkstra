@@ -55,16 +55,21 @@ func (g *Graph) bestPath(src, dest int) BestPath {
 func (g *Graph) evaluate(src, dest int, shortest bool) (BestPath, error) {
 	//Setup graph
 	g.setup(shortest, src)
+	var current *Vertex
 	for g.visiting.len > 0 {
 		//Visit the current lowest distanced Vertex
-		current := g.visiting.popFront()
+		if shortest {
+			current = g.visiting.popFront()
+		} else {
+			current = g.visiting.popBack()
+		}
 		//If we have hit the destination set the flag, cheaper than checking it's
 		// distance change at the end
 		if current.ID == dest {
 			g.visitedDest = true
 		}
 		//If the current distance is already worse than the best try another Vertex
-		if (shortest && current.distance >= g.best) || (!shortest && current.distance <= g.best) {
+		if shortest && current.distance >= g.best { //} || (!shortest && current.distance <= g.best) {
 			continue
 		}
 		for v, dist := range current.arcs {

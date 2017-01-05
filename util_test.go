@@ -13,7 +13,7 @@ func TestWrongFormat(t *testing.T) {
 
 func testWrongFormat(t *testing.T, filename string) {
 	_, err := Import(filename)
-	testErrors(t, ErrWrongFormat, err)
+	testErrors(t, ErrWrongFormat, err, filename)
 }
 
 func TestCorrectFormat(t *testing.T) {
@@ -24,8 +24,9 @@ func TestCorrectFormatNegatives(t *testing.T) {
 	test(t, getCGraph(), map[string]int{}, nil, "testdata/C.txt")
 }
 func TestMixingIntString(t *testing.T) {
-	_, err := Import("testdata/H.txt")
-	testErrors(t, ErrMixMapping, err)
+	filename := "testdata/H.txt"
+	_, err := Import(filename)
+	testErrors(t, ErrMixMapping, err, filename)
 }
 func TestImportCorrectMap(t *testing.T) {
 	wantgraph, wantmap := getGGraph()
@@ -35,7 +36,7 @@ func TestImportCorrectMap(t *testing.T) {
 func test(t *testing.T, wantgraph Graph, wantmap map[string]int, wanterr error, filename string) {
 	graph, err := Import(filename)
 	gmap := graph.mapping
-	testErrors(t, wanterr, err)
+	testErrors(t, wanterr, err, filename)
 	if !reflect.DeepEqual(gmap, wantmap) {
 		t.Fatal("maps are different",
 			"\ngot:\n", fmt.Sprintf("%+v", gmap),
@@ -46,9 +47,9 @@ func test(t *testing.T, wantgraph Graph, wantmap map[string]int, wanterr error, 
 
 //func assertMaps(t *testing.T, got, want map[string]int)
 
-func testErrors(t *testing.T, wanterr, err error) {
+func testErrors(t *testing.T, wanterr, err error, filename string) {
 	if wanterr == nil {
-		assertErrNil(t, err)
+		assertErrNil(t, err, filename)
 		return
 	}
 	if err == nil {
@@ -59,9 +60,9 @@ func testErrors(t *testing.T, wanterr, err error) {
 			"\ngot:", err.Error())
 	}
 }
-func assertErrNil(t *testing.T, err error) {
+func assertErrNil(t *testing.T, err error, filename string) {
 	if err != nil {
-		t.Fatal("Error should be nil;" + err.Error())
+		t.Fatal("Error should be nil;\n", filename, "\n"+err.Error())
 	}
 }
 

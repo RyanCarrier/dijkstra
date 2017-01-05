@@ -15,15 +15,17 @@ import (
 //pq "github.com/Professorq/dijkstra"
 
 func TestNoPath(t *testing.T) {
-	testSolution(t, BestPath{}, ErrNoPath, "testdata/I.txt", 0, 4)
+	testSolution(t, BestPath{}, ErrNoPath, "testdata/I.txt", 0, 4, true)
 }
 
 func TestLoop(t *testing.T) {
-	testSolution(t, BestPath{}, newErrLoop(1, 2), "testdata/J.txt", 0, 4)
+	testSolution(t, BestPath{}, newErrLoop(1, 2), "testdata/J.txt", 0, 4, true)
 }
 
 func TestCorrect(t *testing.T) {
-	testSolution(t, getBSol(), nil, "testdata/B.txt", 0, 5)
+	testSolution(t, getBSol(), nil, "testdata/B.txt", 0, 5, true)
+	testSolution(t, getKSolLong(), nil, "testdata/K.txt", 0, 4, false)
+	testSolution(t, getKSolShort(), nil, "testdata/K.txt", 0, 4, true)
 }
 func BenchmarkRyanCarrierNodes4(b *testing.B)    { benchmarkAlt(b, "testdata/4.txt", 0) }
 func BenchmarkRyanCarrierNodes10(b *testing.B)   { benchmarkAlt(b, "testdata/10.txt", 0) }
@@ -175,17 +177,45 @@ func setupPq(rcg Graph) map[int]pq.Vertex {
 	return vs
 }
 
-func testSolution(t *testing.T, best BestPath, wanterr error, filename string, from, to int) {
-	graph, err := Import(filename)
+func testSolution(t *testing.T, best BestPath, wanterr error, filename string, from, to int, shortest bool) {
+	var err error
+	var graph Graph
+	graph, err = Import(filename)
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err, filename)
 	}
-	got, err := graph.Shortest(from, to)
-	testErrors(t, wanterr, err)
+	var got BestPath
+	if shortest {
+		got, err = graph.Shortest(from, to)
+	} else {
+		got, err = graph.Longest(from, to)
+	}
+	testErrors(t, wanterr, err, filename)
+	distmethod := "Shortest"
+	if !shortest {
+		distmethod = "Longest"
+	}
 	if got.Distance != best.Distance {
-		t.Error("Distance incorrect\ngot: ", got.Distance, "\nwant: ", best.Distance)
+		t.Error(distmethod, " distance incorrect\n", filename, "\ngot: ", got.Distance, "\nwant: ", best.Distance)
 	}
 	if !reflect.DeepEqual(got.Path, best.Path) {
-		t.Error("Path incorrect\ngot: ", got.Path, "\nwant: ", best.Path)
+		t.Error(distmethod, " path incorrect\n\n", filename, "got: ", got.Path, "\nwant: ", best.Path)
+	}
+}
+
+func getKSolLong() BestPath {
+	return BestPath{
+		31,
+		[]int{
+			0, 1, 3, 2, 4,
+		},
+	}
+}
+func getKSolShort() BestPath {
+	return BestPath{
+		2,
+		[]int{
+			0, 3, 4,
+		},
 	}
 }
