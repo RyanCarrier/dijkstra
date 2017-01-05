@@ -2,7 +2,18 @@
 Golangs fastest Dijkstra's shortest (and longest) path calculator, requires go 1.6 or above (for benchmarking).
 
 ## Need for speed
+Benchmark comparisons to the other two top golang dijkstra implementations;
+
+```go test -bench .```
 ![Wow so fast](/speed.png?raw=true "Benchmarks")
+![Wow the multiply!](/multiply.png?raw=true "Multipy")
+
+Oddly the speed benefit seems to diminish as the nodes get higher, this could be
+ due to the fact that the linked list places the to be visited node in the correct
+ ordered position. This means worst case O(n). The generated test cases are worst
+ case, with every need having access to every other node (weighting on the distances
+   to ensure that the shortest path is through lots of nodes). This garuntees
+  worst case scenario for my implementation, but maybe not for the others.
 
 ## Documentation
 [godoc](https://godoc.org/github.com/RyanCarrier/dijkstra)

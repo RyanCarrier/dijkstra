@@ -32,20 +32,21 @@ func TestCorrect(t *testing.T) {
 var benchNames = []string{"github.com/RyanCarrier", "github.com/ProfessorQ", "github.com/albertorestifo"}
 
 func BenchmarkAll(b *testing.B) {
-	nodeIterations := 12
+	nodeIterations := 6
 	for i, n := range benchNames {
 		nodes := 1
 		for j := 0; j < nodeIterations; j++ {
-			nodes *= 2
+			nodes *= 4
 			b.Run(n+"/"+strconv.Itoa(nodes)+"Nodes", func(b *testing.B) {
 				benchmarkAlt(b, nodes, i)
 			})
+
 		}
 	}
 	//Cleanup
 	nodes := 1
 	for j := 0; j < nodeIterations; j++ {
-		nodes *= 2
+		nodes *= 4
 		os.Remove("testdata/bench/" + strconv.Itoa(nodes) + ".txt")
 	}
 }
