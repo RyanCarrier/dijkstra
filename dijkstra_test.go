@@ -11,8 +11,6 @@ import (
 	pq "github.com/RyanCarrier/dijkstra-1"
 	mm "github.com/mattomatic/dijkstra/dijkstra"
 	mmg "github.com/mattomatic/dijkstra/graph"
-
-	"github.com/RyanCarrier/dijkstra/testdata/bench"
 )
 
 //pq "github.com/Professorq/dijkstra"
@@ -53,9 +51,9 @@ func BenchmarkMattomaticNodes100(b *testing.B)  { benchmarkAlt(b, 100, 3) }
 func BenchmarkMattomaticNodes1000(b *testing.B) { benchmarkAlt(b, 1000, 3) }
 */
 func benchmarkAlt(b *testing.B, nodes, i int) {
-	filename := "bench/" + strconv.Itoa(nodes) + ".txt"
-	if err := os.Stat(filename); err != nil {
-		bench.Generate(nodes)
+	filename := "testdata/bench/" + strconv.Itoa(nodes) + ".txt"
+	if _, err := os.Stat(filename); err != nil {
+		Generate(nodes, filename)
 	}
 	switch i {
 	case 0:

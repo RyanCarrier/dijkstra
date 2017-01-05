@@ -1,23 +1,18 @@
-package bench
+package dijkstra
 
 import (
-	"fmt"
 	"log"
 	"math/rand"
-	"strconv"
-
-	"github.com/RyanCarrier/dijkstra"
 )
 
 //Generate generates file with the amount of nodes specified
-func Generate(nodes int) {
-	filename := "bench/" + strconv.Itoa(nodes) + ".txt"
-	fmt.Println("Generating file "+filename+" with nodes ", nodes)
-	graph := dijkstra.Graph{}
+func Generate(nodes int, filename string) {
+	//	fmt.Println("Generating file "+filename+" with nodes ", nodes)
+	graph := Graph{}
 	var i int
 	for i = 0; i < nodes; i++ {
-		v := dijkstra.NewVertex(i)
-		for j := 0; j <= nodes; j++ {
+		v := NewVertex(i)
+		for j := 0; j < nodes; j++ {
 			if j == i {
 				continue
 			}

@@ -95,6 +95,7 @@ func Import(filename string) (g Graph, err error) {
 func (g Graph) ExportToFile(filename string) error {
 	var i string
 	var err error
+	os.MkdirAll(filename, 0777)
 	if _, err = os.Stat(filename); err == nil {
 		os.Remove(filename)
 	}
