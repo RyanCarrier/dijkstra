@@ -1,5 +1,5 @@
 # dijkstra
-Golangs fastest Dijkstra's shortest (and longest) path calculator
+Golangs fastest Dijkstra's shortest (and longest) path calculator, requires go 1.6 or above (for benchmarking).
 
 ## Need for speed
 ![Wow so fast](/speed.png?raw=true "Benchmarks")
