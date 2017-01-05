@@ -1,6 +1,7 @@
 package dijkstra
 
 import (
+	"os"
 	"reflect"
 	"strconv"
 	"testing"
@@ -10,6 +11,8 @@ import (
 	pq "github.com/RyanCarrier/dijkstra-1"
 	mm "github.com/mattomatic/dijkstra/dijkstra"
 	mmg "github.com/mattomatic/dijkstra/graph"
+
+	"github.com/RyanCarrier/dijkstra/testdata/bench"
 )
 
 //pq "github.com/Professorq/dijkstra"
@@ -27,29 +30,33 @@ func TestCorrect(t *testing.T) {
 	testSolution(t, getKSolLong(), nil, "testdata/K.txt", 0, 4, false)
 	testSolution(t, getKSolShort(), nil, "testdata/K.txt", 0, 4, true)
 }
-func BenchmarkRyanCarrierNodes4(b *testing.B)    { benchmarkAlt(b, "testdata/4.txt", 0) }
-func BenchmarkRyanCarrierNodes10(b *testing.B)   { benchmarkAlt(b, "testdata/10.txt", 0) }
-func BenchmarkRyanCarrierNodes100(b *testing.B)  { benchmarkAlt(b, "testdata/100.txt", 0) }
-func BenchmarkRyanCarrierNodes1000(b *testing.B) { benchmarkAlt(b, "testdata/1000.txt", 0) }
+func BenchmarkRyanCarrierNodes4(b *testing.B)    { benchmarkAlt(b, 4, 0) }
+func BenchmarkRyanCarrierNodes10(b *testing.B)   { benchmarkAlt(b, 10, 0) }
+func BenchmarkRyanCarrierNodes100(b *testing.B)  { benchmarkAlt(b, 100, 0) }
+func BenchmarkRyanCarrierNodes1000(b *testing.B) { benchmarkAlt(b, 1000, 0) }
 
-func BenchmarkProfessorQNodes4(b *testing.B)    { benchmarkAlt(b, "testdata/4.txt", 1) }
-func BenchmarkProfessorQNodes10(b *testing.B)   { benchmarkAlt(b, "testdata/10.txt", 1) }
-func BenchmarkProfessorQNodes100(b *testing.B)  { benchmarkAlt(b, "testdata/100.txt", 1) }
-func BenchmarkProfessorQNodes1000(b *testing.B) { benchmarkAlt(b, "testdata/1000.txt", 1) }
+func BenchmarkProfessorQNodes4(b *testing.B)    { benchmarkAlt(b, 4, 1) }
+func BenchmarkProfessorQNodes10(b *testing.B)   { benchmarkAlt(b, 10, 1) }
+func BenchmarkProfessorQNodes100(b *testing.B)  { benchmarkAlt(b, 100, 1) }
+func BenchmarkProfessorQNodes1000(b *testing.B) { benchmarkAlt(b, 1000, 1) }
 
-func BenchmarkAlbertoNodes4(b *testing.B)    { benchmarkAlt(b, "testdata/4.txt", 2) }
-func BenchmarkAlbertoNodes10(b *testing.B)   { benchmarkAlt(b, "testdata/10.txt", 2) }
-func BenchmarkAlbertoNodes100(b *testing.B)  { benchmarkAlt(b, "testdata/100.txt", 2) }
-func BenchmarkAlbertoNodes1000(b *testing.B) { benchmarkAlt(b, "testdata/1000.txt", 2) }
+func BenchmarkAlbertoNodes4(b *testing.B)    { benchmarkAlt(b, 4, 2) }
+func BenchmarkAlbertoNodes10(b *testing.B)   { benchmarkAlt(b, 10, 2) }
+func BenchmarkAlbertoNodes100(b *testing.B)  { benchmarkAlt(b, 100, 2) }
+func BenchmarkAlbertoNodes1000(b *testing.B) { benchmarkAlt(b, 1000, 2) }
 
 /*
 //Mattomatics does not work.
-func BenchmarkMattomaticNodes4(b *testing.B)    { benchmarkAlt(b, "testdata/4.txt", 3) }
-func BenchmarkMattomaticNodes10(b *testing.B)   { benchmarkAlt(b, "testdata/10.txt", 3) }
-func BenchmarkMattomaticNodes100(b *testing.B)  { benchmarkAlt(b, "testdata/100.txt", 3) }
-func BenchmarkMattomaticNodes1000(b *testing.B) { benchmarkAlt(b, "testdata/1000.txt", 3) }
+func BenchmarkMattomaticNodes4(b *testing.B)    { benchmarkAlt(b, 4, 3) }
+func BenchmarkMattomaticNodes10(b *testing.B)   { benchmarkAlt(b, 10, 3) }
+func BenchmarkMattomaticNodes100(b *testing.B)  { benchmarkAlt(b, 100, 3) }
+func BenchmarkMattomaticNodes1000(b *testing.B) { benchmarkAlt(b, 1000, 3) }
 */
-func benchmarkAlt(b *testing.B, filename string, i int) {
+func benchmarkAlt(b *testing.B, nodes, i int) {
+	filename := "bench/" + strconv.Itoa(nodes) + ".txt"
+	if err := os.Stat(filename); err != nil {
+		bench.Generate(nodes)
+	}
 	switch i {
 	case 0:
 		benchmarkRC(b, filename)
