@@ -31,6 +31,16 @@ func TestMixingIntString(t *testing.T) {
 func TestImportCorrectMap(t *testing.T) {
 	wantgraph, wantmap := getGGraph()
 	test(t, wantgraph, wantmap, nil, "testdata/G.txt")
+	f := "testdata/L.txt"
+	_, err := Import(f)
+	testErrors(t, nil, err, f)
+}
+
+func TestImportNoFile(t *testing.T) {
+	_, err := Import("testdata/Idontexistlol.txt")
+	if err == nil {
+		t.Error("no error for non existant file")
+	}
 }
 
 func test(t *testing.T, wantgraph Graph, wantmap map[string]int, wanterr error, filename string) {
