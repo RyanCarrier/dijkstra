@@ -19,10 +19,27 @@ type Graph struct {
 }
 
 //NewGraph creates a new empty graph
-func NewGraph() Graph {
-	new := Graph{}
+func NewGraph() *Graph {
+	new := &Graph{}
 	new.mapping = map[string]int{}
 	return new
+}
+
+//AddNewVertex adds a new vertex at the next available index
+func (g *Graph) AddNewVertex() *Vertex {
+	for i, v := range g.Verticies {
+		if i != v.ID {
+			g.Verticies[i] = Vertex{ID: i}
+			return &g.Verticies[i]
+		}
+	}
+	return g.AddVertex(len(g.Verticies))
+}
+
+//AddVertex adds a single vertex
+func (g *Graph) AddVertex(ID int) *Vertex {
+	g.AddVerticies(Vertex{ID: ID})
+	return &g.Verticies[ID]
 }
 
 //GetVertex gets the reference of the specified vertex. An error is thrown if

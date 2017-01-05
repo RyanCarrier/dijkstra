@@ -13,19 +13,42 @@ type Vertex struct {
 }
 
 //NewVertex creates a new vertex
-func NewVertex(ID int) Vertex {
-	return Vertex{ID: ID}
+func NewVertex(ID int) *Vertex {
+	return &Vertex{ID: ID}
 }
 
-//AddVerticies adds the listed verticies to the graph
-func (g *Graph) AddVerticies(v ...Vertex) {
-	g.Verticies = append(g.Verticies, v...)
+//AddVerticies adds the listed verticies to the graph, overwrites any existing
+// Vertex with the same ID.
+func (g *Graph) AddVerticies(verticies ...Vertex) {
+	for _, v := range verticies {
+		if v.ID >= len(g.Verticies) {
+			newV := make([]Vertex, v.ID-len(g.Verticies))
+			g.Verticies = append(g.Verticies, newV...)
+		}
+		g.Verticies[v.ID] = v
+	}
 }
 
 //AddArc adds an arc to the vertex, it's up to the user to make sure this is used
 // correctly, firstly ensuring to use before adding to graph, or to use referenced
 // of the Vertex instead of a copy. Secondly, to ensure the destination is a valid
-// Vertex in the graph.
+// Vertex in the graph. Note that AddArc will overwrite any existing distance set
+// if there is already an arc set to Destination.
 func (v *Vertex) AddArc(Destination int, Distance int64) {
 	v.arcs[Destination] = Distance
+}
+
+/*
+I decided you don't get that kind of privelage
+#checkyourprivelage
+//RemoveArc completely removes the arc to Destination (if it exists)
+func (v *Vertex) RemoveArc(Destination int) {
+	delete(v.arcs, Destination)
+}*/
+
+//GetArc gets the specified arc to Destination, bool is false if no arc found
+func (v *Vertex) GetArc(Destination int) (distance int64, ok bool) {
+	//idk why but doesn't work on one line?
+	distance, ok = v.arcs[Destination]
+	return
 }
