@@ -3,7 +3,6 @@ package dijkstra
 import (
 	"errors"
 	"fmt"
-	"os"
 )
 
 //Graph contains all the graph details
@@ -68,26 +67,4 @@ func (g *Graph) setDefaults(Distance int64, BestNode int) {
 		g.Verticies[i].bestVertex = BestNode
 		g.Verticies[i].distance = Distance
 	}
-}
-
-//ExportToFile exports the verticies to file currently does not take into account
-// mappings (from string to int)
-func (g Graph) ExportToFile(filename string) error {
-	//TODO ADD MAP STUFF
-	if _, err := os.Stat(filename); err == nil {
-		os.Remove(filename)
-	}
-	f, err := os.OpenFile(filename, os.O_CREATE|os.O_RDWR|os.O_APPEND, 0666)
-	if err != nil {
-		return err
-	}
-	defer f.Close()
-	for _, v := range g.Verticies {
-		fmt.Fprint(f, v.ID)
-		for key := 0; key < len(v.arcs); key++ {
-			fmt.Fprint(f, " ", key, ",", v.arcs[key])
-		}
-		fmt.Fprint(f, "\n")
-	}
-	return nil
 }

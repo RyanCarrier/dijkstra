@@ -28,6 +28,34 @@ func TestMixingIntString(t *testing.T) {
 	_, err := Import(filename)
 	testErrors(t, ErrMixMapping, err, filename)
 }
+
+func TestExport(t *testing.T) {
+	testExport(t, getIGraph())
+	g, _ := getGGraph()
+	g.usingMap = true
+	testExport(t, g)
+}
+
+func testExport(t *testing.T, g Graph) {
+	f := "temp.txt"
+	err := g.ExportToFile(f)
+	if err != nil {
+		t.Error("Export to file err should be nil;\n", err)
+	}
+	got, _ := Import(f)
+	if len(g.Verticies) != len(got.Verticies) {
+		t.Fatal("Verticies not same size", g.Verticies, got.Verticies)
+	}
+	for i := range g.Verticies {
+		if !reflect.DeepEqual(g.Verticies[i], got.Verticies[i]) {
+			t.Error("Vertex does not match", g.Verticies[i], got.Verticies[i])
+		}
+	}
+	if !reflect.DeepEqual(g.mapping, got.mapping) {
+		t.Error("Maps do not equal", g.mapping, got.mapping)
+	}
+}
+
 func TestImportCorrectMap(t *testing.T) {
 	wantgraph, wantmap := getGGraph()
 	test(t, wantgraph, wantmap, nil, "testdata/G.txt")
@@ -206,7 +234,11 @@ func getGGraph() (Graph, map[string]int) {
 				},
 			},
 			newLinkedList(),
-			map[string]int{},
+			map[string]int{
+				"A": 0,
+				"B": 1,
+				"C": 2,
+			},
 			false,
 			0,
 		}, map[string]int{
@@ -214,4 +246,29 @@ func getGGraph() (Graph, map[string]int) {
 			"B": 1,
 			"C": 2,
 		}
+}
+
+func getIGraph() Graph {
+	return Graph{
+		0, false,
+		[]Vertex{
+			Vertex{0, 0, 0, map[int]int64{
+				1: 2},
+			},
+			Vertex{1, 0, 0, map[int]int64{
+				2: 3},
+			},
+			Vertex{2, 0, 0, map[int]int64{
+				3: 4},
+			},
+			Vertex{3, 0, 0, map[int]int64{
+				2: 5},
+			},
+			Vertex{4, 0, 0, map[int]int64{}},
+		},
+		newLinkedList(),
+		map[string]int{},
+		false,
+		0,
+	}
 }

@@ -1,7 +1,10 @@
 package dijkstra
 
 import (
+	"errors"
+	"fmt"
 	"io/ioutil"
+	"os"
 	"strconv"
 	"strings"
 )
@@ -25,6 +28,9 @@ func Import(filename string) (g Graph, err error) {
 	input := strings.TrimSpace(string(got))
 	for _, line := range strings.Split(input, "\n") {
 		f := strings.Fields(strings.TrimSpace(line))
+		if len(f) == 0 || (len(f) == 1 && f[0] == "") {
+			continue
+		}
 		//no need to check for size cause there must be something as the string is trimmed and split
 		if g.usingMap {
 			if i, ok = g.mapping[f[0]]; !ok {
@@ -82,4 +88,41 @@ func Import(filename string) (g Graph, err error) {
 	}
 	err = g.validate()
 	return
+}
+
+//ExportToFile exports the verticies to file currently does not take into account
+// mappings (from string to int)
+func (g Graph) ExportToFile(filename string) error {
+	var i string
+	var err error
+	if _, err = os.Stat(filename); err == nil {
+		os.Remove(filename)
+	}
+	f, err := os.OpenFile(filename, os.O_CREATE|os.O_RDWR|os.O_APPEND, 0666)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+	for _, v := range g.Verticies {
+		if g.usingMap {
+			if i, err = g.GetMapped(v.ID); err != nil {
+				return errors.New("Mapping fail when exporting; " + err.Error())
+			}
+			fmt.Fprint(f, i)
+		} else {
+			fmt.Fprint(f, v.ID)
+		}
+		for key, val := range v.arcs {
+			if g.usingMap {
+				if i, err = g.GetMapped(key); err != nil {
+					return errors.New("Mapping fail when exporting; " + err.Error())
+				}
+				fmt.Fprint(f, " ", i, ",", val)
+			} else {
+				fmt.Fprint(f, " ", key, ",", val)
+			}
+		}
+		fmt.Fprint(f, "\n")
+	}
+	return nil
 }
