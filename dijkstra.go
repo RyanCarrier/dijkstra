@@ -21,7 +21,7 @@ func (g *Graph) finally(src, dest int) (BestPath, error) {
 
 func (g *Graph) setup(shortest bool, src int) {
 	//Get a new list regardless
-	g.Visiting = newLinkedList()
+	g.visiting = newLinkedList()
 	//Reset state
 	g.visitedDest = false
 	//Reset the best current value (worst so it gets overwritten)
@@ -37,7 +37,7 @@ func (g *Graph) setup(shortest bool, src int) {
 	//Set the distance of initial vertex 0
 	g.Verticies[src].distance = 0
 	//Add the source vertex to the list
-	g.Visiting.pushFront(&g.Verticies[src])
+	g.visiting.pushFront(&g.Verticies[src])
 }
 
 func (g *Graph) bestPath(src, dest int) BestPath {
@@ -55,9 +55,9 @@ func (g *Graph) bestPath(src, dest int) BestPath {
 func (g *Graph) evaluate(src, dest int, shortest bool) (BestPath, error) {
 	//Setup graph
 	g.setup(shortest, src)
-	for g.Visiting.len > 0 {
+	for g.visiting.len > 0 {
 		//Visit the current lowest distanced Vertex
-		current := g.Visiting.popFront()
+		current := g.visiting.popFront()
 		//If we have hit the destination set the flag, cheaper than checking it's
 		// distance change at the end
 		if current.ID == dest {
@@ -84,7 +84,7 @@ func (g *Graph) evaluate(src, dest int, shortest bool) (BestPath, error) {
 				}
 				//Push this updated Vertex into the list to be evaluated, pushes in
 				// sorted form
-				g.Visiting.pushOrdered(&g.Verticies[v])
+				g.visiting.pushOrdered(&g.Verticies[v])
 			}
 		}
 	}

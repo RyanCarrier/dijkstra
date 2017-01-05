@@ -12,6 +12,11 @@ type Vertex struct {
 	arcs map[int]int64
 }
 
+//NewVertex creates a new vertex
+func NewVertex(ID int) Vertex {
+	return Vertex{ID: ID}
+}
+
 //AddVerticies adds the listed verticies to the graph
 func (g *Graph) AddVerticies(v ...Vertex) {
 	g.Verticies = append(g.Verticies, v...)

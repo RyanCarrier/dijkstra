@@ -29,6 +29,8 @@ func (g *Graph) GetMapping(a string) (int, error) {
 	return -1, errors.New(fmt.Sprint(a, " not found in mapping"))
 }
 
+//AddMappedVertex adds a new Vertex with a mapped ID (or returns the index if
+// ID already exists).
 func (g *Graph) AddMappedVertex(ID string) int {
 	if i, ok := g.mapping[ID]; ok {
 		return i
@@ -40,10 +42,14 @@ func (g *Graph) AddMappedVertex(ID string) int {
 	return i
 }
 
+//AddMappedArc adds a new Arc from Source to Destination, for when verticies are
+// referenced by strings.
 func (g *Graph) AddMappedArc(Source, Destination string, Distance int64) error {
 	return g.AddArc(g.AddMappedVertex(Source), g.AddMappedVertex(Destination), Distance)
 }
 
+//AddArc is the default method for adding an arc from a Source Vertex to a
+// Destination Vertex
 func (g *Graph) AddArc(Source, Destination int, Distance int64) error {
 	if len(g.Verticies) <= Source || len(g.Verticies) <= Destination {
 		return errors.New("Source/Destination not found")

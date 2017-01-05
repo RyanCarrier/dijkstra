@@ -12,17 +12,26 @@ type Graph struct {
 	visitedDest bool
 	//slice of all verticies available
 	Verticies       []Vertex
-	Visiting        *linkedList
+	visiting        *linkedList
 	mapping         map[string]int
 	usingMap        bool
 	highestMapIndex int
 }
 
-func (g *Graph) GetVertex(i int) (*Vertex, error) {
-	if i >= len(g.Verticies) {
+//NewGraph creates a new empty graph
+func NewGraph() Graph {
+	new := Graph{}
+	new.mapping = map[string]int{}
+	return new
+}
+
+//GetVertex gets the reference of the specified vertex. An error is thrown if
+// there is no vertex with that index/ID.
+func (g *Graph) GetVertex(ID int) (*Vertex, error) {
+	if ID >= len(g.Verticies) {
 		return nil, errors.New("Vertex not found")
 	}
-	return &g.Verticies[i], nil
+	return &g.Verticies[ID], nil
 }
 
 func (g Graph) validate() error {
@@ -45,7 +54,8 @@ func (g *Graph) setDefaults(Distance int64, BestNode int) {
 	}
 }
 
-//ExportToFile exports the verticies to file
+//ExportToFile exports the verticies to file currently does not take into account
+// mappings (from string to int)
 func (g Graph) ExportToFile(filename string) error {
 	//TODO ADD MAP STUFF
 	if _, err := os.Stat(filename); err == nil {
