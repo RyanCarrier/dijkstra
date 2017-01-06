@@ -118,22 +118,22 @@ func getAGraph() Graph {
 	return Graph{
 		0, false,
 		[]Vertex{
-			Vertex{0, 0, 0, map[int]int64{
+			Vertex{0, 0, 0, 0, map[int]int64{
 				1: 4,
 				2: 2},
 			},
-			Vertex{1, 0, 0, map[int]int64{
+			Vertex{1, 0, 0, 0, map[int]int64{
 				3: 2,
 				2: 3,
 				4: 3},
 			},
-			Vertex{2, 0, 0, map[int]int64{
+			Vertex{2, 0, 0, 0, map[int]int64{
 				1: 1,
 				3: 4,
 				4: 5},
 			},
-			Vertex{3, 0, 0, map[int]int64{}},
-			Vertex{4, 0, 0, map[int]int64{
+			Vertex{3, 0, 0, 0, map[int]int64{}},
+			Vertex{4, 0, 0, 0, map[int]int64{
 				3: 1},
 			},
 		},
@@ -148,26 +148,26 @@ func getBGraph() Graph {
 	return Graph{
 		0, false,
 		[]Vertex{
-			Vertex{0, 0, 0, map[int]int64{
+			Vertex{0, 0, 0, 0, map[int]int64{
 				1: 4,
 				2: 2},
 			},
-			Vertex{1, 0, 0, map[int]int64{
+			Vertex{1, 0, 0, 0, map[int]int64{
 				3: 2,
 				2: 3,
 				4: 3},
 			},
-			Vertex{2, 0, 0, map[int]int64{
+			Vertex{2, 0, 0, 0, map[int]int64{
 				1: 1,
 				3: 4,
 				4: 5},
 			},
-			Vertex{3, 0, 0, map[int]int64{
+			Vertex{3, 0, 0, 0, map[int]int64{
 				5: 10}},
-			Vertex{4, 0, 0, map[int]int64{
+			Vertex{4, 0, 0, 0, map[int]int64{
 				3: 1},
 			},
-			Vertex{5, 0, 0, map[int]int64{
+			Vertex{5, 0, 0, 0, map[int]int64{
 				3: 10},
 			},
 		},
@@ -188,26 +188,26 @@ func getBSol() BestPath {
 func getCGraph() Graph {
 	return Graph{0, false,
 		[]Vertex{
-			Vertex{0, 0, 0, map[int]int64{
+			Vertex{0, 0, 0, 0, map[int]int64{
 				1: -4,
 				2: 2},
 			},
-			Vertex{1, 0, 0, map[int]int64{
+			Vertex{1, 0, 0, 0, map[int]int64{
 				3: 2,
 				2: -3,
 				4: 3},
 			},
-			Vertex{2, 0, 0, map[int]int64{
+			Vertex{2, 0, 0, 0, map[int]int64{
 				1: 1,
 				3: 4,
 				4: 5},
 			},
-			Vertex{3, 0, 0, map[int]int64{
+			Vertex{3, 0, 0, 0, map[int]int64{
 				5: -10}},
-			Vertex{4, 0, 0, map[int]int64{
+			Vertex{4, 0, 0, 0, map[int]int64{
 				3: 1},
 			},
-			Vertex{5, 0, 0, map[int]int64{
+			Vertex{5, 0, 0, 0, map[int]int64{
 				3: -10},
 			},
 		},
@@ -222,13 +222,13 @@ func getGGraph() (Graph, map[string]int) {
 	return Graph{
 			0, false,
 			[]Vertex{
-				Vertex{0, 0, 0, map[int]int64{
+				Vertex{0, 0, 0, 0, map[int]int64{
 					1: 2},
 				},
-				Vertex{1, 0, 0, map[int]int64{
+				Vertex{1, 0, 0, 0, map[int]int64{
 					2: 5},
 				},
-				Vertex{2, 0, 0, map[int]int64{
+				Vertex{2, 0, 0, 0, map[int]int64{
 					0: 1,
 					1: 1},
 				},
@@ -252,19 +252,19 @@ func getIGraph() Graph {
 	return Graph{
 		0, false,
 		[]Vertex{
-			Vertex{0, 0, 0, map[int]int64{
+			Vertex{0, 0, 0, 0, map[int]int64{
 				1: 2},
 			},
-			Vertex{1, 0, 0, map[int]int64{
+			Vertex{1, 0, 0, 0, map[int]int64{
 				2: 3},
 			},
-			Vertex{2, 0, 0, map[int]int64{
+			Vertex{2, 0, 0, 0, map[int]int64{
 				3: 4},
 			},
-			Vertex{3, 0, 0, map[int]int64{
+			Vertex{3, 0, 0, 0, map[int]int64{
 				2: 5},
 			},
-			Vertex{4, 0, 0, map[int]int64{}},
+			Vertex{4, 0, 0, 0, map[int]int64{}},
 		},
 		newLinkedList(),
 		map[string]int{},
