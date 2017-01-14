@@ -6,9 +6,8 @@ type Vertex struct {
 	//ID of the Vertex
 	ID int
 	//Best distance to the Vertex
-	distance     int64
-	bestVertex   int
-	multiplyDist int64
+	distance   int64
+	bestVertex int
 	//A set of all weights to the nodes in the map
 	arcs map[int]int64
 }
