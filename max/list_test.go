@@ -1,5 +1,5 @@
 //From github.com/RyanCarrier/dijkstra
-package dijkstraMax
+package max
 
 import "testing"
 

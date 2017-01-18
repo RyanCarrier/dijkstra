@@ -1,4 +1,4 @@
-package dijkstraMax
+package max
 
 //From github.com/RyanCarrier/dijkstra
 
@@ -139,4 +139,10 @@ func (l *linkedList) remove(e *element) *element {
 func (l *linkedList) pushFront(v *Vertex) *element {
 	l.lazyinit()
 	return l.insertValue(v, &l.root)
+}
+
+// pushFront inserts a new element e with value v at the front of list l and returns e.
+func (l *linkedList) push(v *Vertex) *element {
+	l.lazyinit()
+	return l.insertValue(v, l.root.prev)
 }

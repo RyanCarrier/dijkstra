@@ -1,4 +1,4 @@
-package dijkstraMax
+package max
 
 import (
 	"errors"
