@@ -1,8 +1,11 @@
 package dijkstra
 
+import "sync"
+
 //Vertex is a single node in the network, contains it's ID, best distance (to
 // itself from the src) and the weight to go to each other connected node (Vertex)
 type Vertex struct {
+	sync.Mutex
 	//ID of the Vertex
 	ID int
 	//Best distance to the Vertex
@@ -13,19 +16,23 @@ type Vertex struct {
 }
 
 //NewVertex creates a new vertex
-func NewVertex(ID int) *Vertex {
-	return &Vertex{ID: ID, arcs: map[int]int64{}}
+func NewVertex(ID int) Vertex {
+	return Vertex{ID: ID, arcs: map[int]int64{}}
 }
 
 //AddVerticies adds the listed verticies to the graph, overwrites any existing
 // Vertex with the same ID.
-func (g *Graph) AddVerticies(verticies ...Vertex) {
-	for _, v := range verticies {
-		if v.ID >= len(g.Verticies) {
-			newV := make([]Vertex, v.ID+1-len(g.Verticies))
-			g.Verticies = append(g.Verticies, newV...)
+func (g *Graph) AddVerticies(verticies ...*Vertex) {
+	for i := range verticies {
+		if verticies[i].ID >= len(g.Verticies) {
+			newV := make([]Vertex, verticies[i].ID+1-len(g.Verticies))
+			pointerV := make([]*Vertex, verticies[i].ID+1-len(g.Verticies))
+			for j := range newV {
+				pointerV[j] = &newV[j]
+			}
+			g.Verticies = append(g.Verticies, pointerV...)
 		}
-		g.Verticies[v.ID] = v
+		g.Verticies[verticies[i].ID] = verticies[i]
 	}
 }
 

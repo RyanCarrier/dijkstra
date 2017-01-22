@@ -10,7 +10,7 @@ type Graph struct {
 	best        int64
 	visitedDest bool
 	//slice of all verticies available
-	Verticies       []Vertex
+	Verticies       []*Vertex
 	visiting        *linkedList
 	mapping         map[string]int
 	usingMap        bool
@@ -28,8 +28,8 @@ func NewGraph() *Graph {
 func (g *Graph) AddNewVertex() *Vertex {
 	for i, v := range g.Verticies {
 		if i != v.ID {
-			g.Verticies[i] = Vertex{ID: i}
-			return &g.Verticies[i]
+			g.Verticies[i] = &Vertex{ID: i}
+			return g.Verticies[i]
 		}
 	}
 	return g.AddVertex(len(g.Verticies))
@@ -37,8 +37,8 @@ func (g *Graph) AddNewVertex() *Vertex {
 
 //AddVertex adds a single vertex
 func (g *Graph) AddVertex(ID int) *Vertex {
-	g.AddVerticies(Vertex{ID: ID})
-	return &g.Verticies[ID]
+	g.AddVerticies(&Vertex{ID: ID})
+	return g.Verticies[ID]
 }
 
 //GetVertex gets the reference of the specified vertex. An error is thrown if
@@ -47,7 +47,7 @@ func (g *Graph) GetVertex(ID int) (*Vertex, error) {
 	if ID >= len(g.Verticies) {
 		return nil, errors.New("Vertex not found")
 	}
-	return &g.Verticies[ID], nil
+	return g.Verticies[ID], nil
 }
 
 func (g Graph) validate() error {

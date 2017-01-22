@@ -48,7 +48,12 @@ func Import(filename string) (g Graph, err error) {
 			}
 		}
 		if temp := len(g.Verticies); temp <= i { //Extend if we have to
-			g.Verticies = append(g.Verticies, make([]Vertex, 1+i-len(g.Verticies))...)
+			tempArray := make([]Vertex, 1+i-len(g.Verticies))
+			pointerArray := make([]*Vertex, 1+i-len(g.Verticies))
+			for j := range tempArray {
+				pointerArray[j] = &tempArray[j]
+			}
+			g.Verticies = append(g.Verticies, pointerArray...)
 			for ; temp < len(g.Verticies); temp++ {
 				g.Verticies[temp].ID = temp
 				g.Verticies[temp].arcs = map[int]int64{}

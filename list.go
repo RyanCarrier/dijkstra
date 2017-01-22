@@ -1,5 +1,7 @@
 package dijkstra
 
+import "sync"
+
 //THE FOLLOWING FILE IS BASED FROM GO AUTHORS EDITED MINORLY AND LAZILY TO SUIT MY NEEDS
 //https://golang.org/src/container/list/list.go?m=text
 //AVOID USING MINE AS A TEMPLATE AS I REMOVED MOST SAFETIES (that's why they are
@@ -24,6 +26,7 @@ type element struct {
 // linkedList represents a doubly linked list.
 // The zero value for linkedList is an empty list ready to use.
 type linkedList struct {
+	sync.Mutex
 	root element // sentinel list element, only &root, root.prev, and root.next are used
 	len  int     // current list length excluding (this) sentinel element
 }

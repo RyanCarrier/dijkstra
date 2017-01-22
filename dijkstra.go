@@ -1,6 +1,18 @@
 package dijkstra
 
-import "math"
+import (
+	"fmt"
+	"log"
+	"math"
+	"sync"
+)
+
+type semWG struct {
+	sync.RWMutex
+	threads int
+}
+
+var wg semWG
 
 //Shortest calculates the shortest path from src to dest
 func (g *Graph) Shortest(src, dest int) (BestPath, error) {
@@ -37,7 +49,7 @@ func (g *Graph) setup(shortest bool, src int) {
 	//Set the distance of initial vertex 0
 	g.Verticies[src].distance = 0
 	//Add the source vertex to the list
-	g.visiting.pushFront(&g.Verticies[src])
+	g.visiting.pushFront(g.Verticies[src])
 }
 
 func (g *Graph) bestPath(src, dest int) BestPath {
@@ -70,7 +82,7 @@ func (g *Graph) evaluate(src, dest int, shortest bool) (BestPath, error) {
 			continue
 		}
 		//If the current distance is already worse than the best try another Vertex
-		if shortest && current.distance >= g.best { //} || (!shortest && current.distance <= g.best) {
+		if shortest && current.distance >= g.best || (!shortest && current.distance <= g.best) {
 			continue
 		}
 		for v, dist := range current.arcs {
@@ -91,7 +103,7 @@ func (g *Graph) evaluate(src, dest int, shortest bool) (BestPath, error) {
 				}
 				//Push this updated Vertex into the list to be evaluated, pushes in
 				// sorted form
-				g.visiting.pushOrdered(&g.Verticies[v])
+				g.visiting.pushOrdered(g.Verticies[v])
 			}
 		}
 	}
@@ -102,4 +114,108 @@ func (g *Graph) evaluate(src, dest int, shortest bool) (BestPath, error) {
 type BestPath struct {
 	Distance int64
 	Path     []int
+}
+
+func (g *Graph) multiEvaluate(src, dest int, shortest bool) (BestPath, error) {
+	wg = semWG{}
+	wg.threads = 0
+	//Setup graph
+	maxThreads := 10
+	g.setup(shortest, src)
+	wg.RLock()
+	for wg.threads > 0 || g.getListLen() > 0 {
+		for ; wg.threads > 0 && g.getListLen() == 0; wg.lockUnlock() {
+			fmt.Print(".")
+		}
+		for g.getListLen() > 0 {
+			//Visit the current lowest distanced Vertex
+			for ; wg.threads >= maxThreads; wg.lockUnlock() {
+				fmt.Print("-")
+			}
+			wg.RUnlock()
+			g.visiting.Lock()
+			//fmt.Println("try go")
+			if g.visiting.len > 0 {
+				//spew.Dump(&wg)
+				wg.incr()
+				//fmt.Println("go")
+				go g.multiVisitNode(dest, shortest)
+			}
+			g.visiting.Unlock()
+			wg.RLock()
+		}
+	}
+	return g.finally(src, dest)
+}
+
+func (g *Graph) getListLen() int {
+	g.visiting.Lock()
+	defer g.visiting.Unlock()
+	return g.visiting.len
+}
+func (s *semWG) lockUnlock() {
+	s.RUnlock()
+	s.RLock()
+}
+func (s *semWG) incr() {
+	s.Lock()
+	defer s.Unlock()
+	s.threads++
+}
+func (s *semWG) dec() {
+	s.Lock()
+	defer s.Unlock()
+	s.threads--
+}
+
+func (g *Graph) multiVisitNode(dest int, shortest bool) {
+	defer wg.dec()
+	var current *Vertex
+	g.visiting.Lock()
+	if g.visiting.len == 0 {
+		g.visiting.Unlock()
+		return
+	}
+	if shortest {
+		current = g.visiting.popFront()
+	} else {
+		current = g.visiting.popBack()
+	}
+	//spew.Dump(current)
+	g.visiting.Unlock()
+	current.Lock()
+	defer current.Unlock()
+	//If we have hit the destination set the flag, cheaper than checking it's
+	// distance change at the end
+	if current.ID == dest {
+		g.visitedDest = true
+		return
+	}
+	//If the current distance is already worse than the best try another Vertex
+	if shortest && current.distance >= g.best || (!shortest && current.distance <= g.best) {
+		return
+	}
+	for v, dist := range current.arcs {
+		if v == current.ID {
+			//could deadlock if arc to self lol
+			continue
+		}
+		//Implement RWMutex instead
+		g.Verticies[v].Lock()
+		if (shortest && current.distance+dist < g.Verticies[v].distance) ||
+			(!shortest && current.distance+dist > g.Verticies[v].distance) {
+			if g.Verticies[v].bestVertex == current.ID && g.Verticies[v].ID != dest {
+				log.Fatal(newErrLoop(current.ID, v))
+			}
+			g.Verticies[v].distance = current.distance + dist
+			g.Verticies[v].bestVertex = current.ID
+			if v == dest {
+				g.best = current.distance + dist
+			}
+			g.visiting.Lock()
+			g.visiting.pushOrdered(g.Verticies[v])
+			g.visiting.Unlock()
+		}
+		g.Verticies[v].Unlock()
+	}
 }

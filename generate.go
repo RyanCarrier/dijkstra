@@ -18,7 +18,7 @@ func Generate(nodes int, filename string) {
 			}
 			v.AddArc(j, int64(2*nodes-j)+rand.Int63n(int64(nodes)*int64(nodes-j+1)))
 		}
-		graph.AddVerticies(*v)
+		graph.AddVerticies(&v)
 	}
 	err := graph.ExportToFile(filename)
 	if err != nil {
