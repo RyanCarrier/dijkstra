@@ -1,11 +1,8 @@
 package dijkstra
 
 import (
-	"log"
 	"math"
 	"sync"
-
-	"github.com/davecgh/go-spew/spew"
 )
 
 type semWG struct {
@@ -117,6 +114,7 @@ type BestPath struct {
 	Path     []int
 }
 
+//DOES NOT DETECT INF LOOPS
 func (g *Graph) multiEvaluate(src, dest, threads int, shortest bool) (BestPath, error) {
 	wg = semWG{}
 	var maxThreads int
@@ -173,6 +171,7 @@ func (s *semWG) dec() {
 	s.threads--
 }
 
+//DOES NOT DETECT INF LOOPS
 func (g *Graph) multiVisitNode(dest int, shortest bool) {
 	defer wg.dec()
 	var current *Vertex
@@ -209,10 +208,14 @@ func (g *Graph) multiVisitNode(dest int, shortest bool) {
 		g.Verticies[v].Lock()
 		if (shortest && current.distance+dist < g.Verticies[v].distance) ||
 			(!shortest && current.distance+dist > g.Verticies[v].distance) {
-			if g.Verticies[v].bestVertex == current.ID && g.Verticies[v].ID != dest {
-				spew.Dump(g)
-				log.Fatal(newErrLoop(current.ID, v))
-			}
+			/*	if g.Verticies[v].bestVertex == current.ID && g.Verticies[v].ID != dest {
+				var vert int
+				for vert = v; vert != current.ID && vert != -1; vert = g.Verticies[vert].bestVertex {
+				}
+				if vert == current.ID {
+					log.Fatal(newErrLoop(current.ID, v))
+				}
+			}*/
 			g.Verticies[v].distance = current.distance + dist
 			g.Verticies[v].bestVertex = current.ID
 			if v == dest {
