@@ -1,6 +1,8 @@
 package dijkstra
 
 import (
+	"fmt"
+	"math"
 	"os"
 	"reflect"
 	"strconv"
@@ -68,7 +70,7 @@ func benchmarkAlt(b *testing.B, nodes, i int) {
 	case 2:
 		benchmarkAR(b, filename)
 	case 3:
-		benchmarkRCmulti(b, filename)
+		benchmarkRCmulti(b, filename, 2)
 	case 4:
 		benchmarkMM(b, filename)
 	default:
@@ -163,13 +165,13 @@ func benchmarkRC(b *testing.B, filename string) {
 	}
 }
 
-func benchmarkRCmulti(b *testing.B, filename string) {
+func benchmarkRCmulti(b *testing.B, filename string, threads int) {
 	graph, _ := Import(filename)
 	src, dest := 0, len(graph.Verticies)-1
 	//====RESET TIMER BEFORE LOOP====
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		graph.multiEvaluate(src, dest, true)
+		graph.multiEvaluate(src, dest, threads, true)
 	}
 }
 
@@ -210,15 +212,25 @@ func testSolution(t *testing.T, best BestPath, wanterr error, filename string, f
 	if shortest {
 		graph2 := graph
 		got, err = graph.Shortest(from, to)
-		got2, _ := graph2.multiEvaluate(from, to, shortest)
-		//testErrors(t, wanterr, err2, filename)
-		distmethod := "Shortest"
-		//spew.Dump(graph2)
-		if got2.Distance != best.Distance {
-			t.Error(distmethod, " distance incorrect\n", filename, "\ngot: ", got2.Distance, "\nwant: ", best.Distance)
-		}
-		if !reflect.DeepEqual(got2.Path, best.Path) {
-			t.Error(distmethod, " path incorrect\n\n", filename, "got: ", got2.Path, "\nwant: ", best.Path)
+		//Test low threads
+		for i := 1; i <= math.MaxInt32; i *= i {
+			//Tests; <2,147,483,647
+			// 1 -> 4 -> 16 -> 256 -> 65,536 -> 4,294,967,296 (won't run last one)
+			//All will get limited back but yolo
+			fmt.Println(i)
+			got2, _ := graph2.multiEvaluate(from, to, i, shortest)
+			//testErrors(t, wanterr, err2, filename)
+			distmethod := "Shortest"
+			//spew.Dump(graph2)
+			if got2.Distance != best.Distance {
+				t.Error(distmethod, " distance incorrect\n", filename, "\ngot: ", got2.Distance, "\nwant: ", best.Distance)
+			}
+			if !reflect.DeepEqual(got2.Path, best.Path) {
+				t.Error(distmethod, " path incorrect\n\n", filename, "got: ", got2.Path, "\nwant: ", best.Path)
+			}
+			if i < 2 {
+				i = 2
+			}
 		}
 	} else {
 		got, err = graph.Longest(from, to)

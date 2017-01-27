@@ -1,10 +1,11 @@
 package dijkstra
 
 import (
-	"fmt"
 	"log"
 	"math"
 	"sync"
+
+	"github.com/davecgh/go-spew/spew"
 )
 
 type semWG struct {
@@ -116,29 +117,33 @@ type BestPath struct {
 	Path     []int
 }
 
-func (g *Graph) multiEvaluate(src, dest int, shortest bool) (BestPath, error) {
+func (g *Graph) multiEvaluate(src, dest, threads int, shortest bool) (BestPath, error) {
 	wg = semWG{}
-	wg.threads = 0
+	var maxThreads int
+	nodes := len(g.Verticies)
+	if threads < nodes && threads > 0 {
+		maxThreads = threads
+	} else {
+		//Limit threads to nodes
+		maxThreads = nodes
+	}
 	//Setup graph
-	maxThreads := 10
+	wg.Lock()
+	wg.threads = 0
+	wg.Unlock()
 	g.setup(shortest, src)
 	wg.RLock()
 	for wg.threads > 0 || g.getListLen() > 0 {
 		for ; wg.threads > 0 && g.getListLen() == 0; wg.lockUnlock() {
-			fmt.Print(".")
 		}
 		for g.getListLen() > 0 {
 			//Visit the current lowest distanced Vertex
 			for ; wg.threads >= maxThreads; wg.lockUnlock() {
-				fmt.Print("-")
 			}
 			wg.RUnlock()
 			g.visiting.Lock()
-			//fmt.Println("try go")
 			if g.visiting.len > 0 {
-				//spew.Dump(&wg)
 				wg.incr()
-				//fmt.Println("go")
 				go g.multiVisitNode(dest, shortest)
 			}
 			g.visiting.Unlock()
@@ -205,6 +210,7 @@ func (g *Graph) multiVisitNode(dest int, shortest bool) {
 		if (shortest && current.distance+dist < g.Verticies[v].distance) ||
 			(!shortest && current.distance+dist > g.Verticies[v].distance) {
 			if g.Verticies[v].bestVertex == current.ID && g.Verticies[v].ID != dest {
+				spew.Dump(g)
 				log.Fatal(newErrLoop(current.ID, v))
 			}
 			g.Verticies[v].distance = current.distance + dist
