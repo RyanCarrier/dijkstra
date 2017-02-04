@@ -1,6 +1,9 @@
 package dijkstra
 
-import "errors"
+import (
+	"errors"
+	"fmt"
+)
 
 //DOES NOT DETECT INF LOOPS
 func (g *Graph) multiEvaluate(src, dest, threads int, shortest bool) (BestPath, error) {
@@ -58,9 +61,9 @@ func (g *Graph) multiVisitNode(dest int, shortest bool, wg *semWG) {
 	}
 	//spew.Dump(current)
 	g.visiting.Unlock()
-	//current.setActive(true)
-	//	defer current.setActive(false)
-
+	current.setActive(true)
+	defer current.setActive(false)
+	fmt.Println("0")
 	//don't have to lock cause writting never gets done to these areas
 	cdist, cid := current.distance, current.ID
 	//If we have hit the destination set the flag, cheaper than checking it's
@@ -68,31 +71,50 @@ func (g *Graph) multiVisitNode(dest int, shortest bool, wg *semWG) {
 	if cid == dest {
 		return
 	}
+	fmt.Println("1")
 	//If the current distance is already worse than the best try another Vertex
 	if (shortest && cdist >= g.best) || (!shortest && cdist <= g.best) {
 		return
 	}
+	fmt.Println("2")
 	for v, dist := range current.arcs {
+		fmt.Println("3")
 		select {
 		case <-current.quit:
+			fmt.Println("dying")
 			return
 		default:
+			fmt.Println("Loopin")
 		}
+		fmt.Println("4")
 		if v == cid {
 			//could deadlock if arc to self lol
 			continue
 		}
+		fmt.Println("5")
 		//Implement RWMutex instead
 		g.Verticies[v].Lock()
+		fmt.Println("6")
 		if (shortest && cdist+dist < g.Verticies[v].distance) ||
 			(!shortest && cdist+dist > g.Verticies[v].distance) {
+			fmt.Println("7")
 			//Check for loop
 			if g.Verticies[v].active {
 				//kill
+				fmt.Println("KILL ", v)
+				select {
+				case <-g.Verticies[v].quit:
+					fmt.Println("HE COULD QUIT")
+				default:
+					fmt.Println("HE CANT QUIT")
+				}
 				g.Verticies[v].quit <- true
+				fmt.Println("KILLIN ", v)
 			}
+			fmt.Println("8")
 			g.Verticies[v].distance = cdist + dist
 			g.Verticies[v].bestVertex = cid
+			fmt.Println("9")
 			if v == dest {
 				g.best = cdist + dist
 				g.visitedDest = true
