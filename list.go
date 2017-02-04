@@ -26,7 +26,7 @@ type element struct {
 // linkedList represents a doubly linked list.
 // The zero value for linkedList is an empty list ready to use.
 type linkedList struct {
-	sync.Mutex
+	sync.RWMutex
 	root element // sentinel list element, only &root, root.prev, and root.next are used
 	len  int     // current list length excluding (this) sentinel element
 }
@@ -100,6 +100,16 @@ func (l *linkedList) pushOrdered(v *Vertex) *element {
 	}
 	current := l.front()
 	for current.Value.distance < v.distance && current.Value.ID != v.ID { //don't need to chack if current=back cause back already checked
+		if current.next == nil || current.next.Value == nil {
+			//current.next = &current.list.root
+			break /*
+				c := spew.ConfigState{}
+				c.Indent = "\t"
+				c.MaxDepth = 2
+				c.Dump(current)
+				log.Panic("SOMETHING NIL")
+				break */
+		}
 		current = current.next
 	}
 	if current.Value.ID == v.ID {

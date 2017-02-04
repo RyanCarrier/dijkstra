@@ -12,12 +12,25 @@ type Vertex struct {
 	distance   int64
 	bestVertex int
 	//A set of all weights to the nodes in the map
-	arcs map[int]int64
+	arcs   map[int]int64
+	active bool
+	quit   chan bool
 }
 
 //NewVertex creates a new vertex
 func NewVertex(ID int) Vertex {
 	return Vertex{ID: ID, arcs: map[int]int64{}}
+}
+
+func (v *Vertex) setActive(a bool) {
+	v.Lock()
+	v.active = a
+	v.Unlock()
+}
+func (v *Vertex) getActive() bool {
+	v.RLock()
+	defer v.RUnlock()
+	return v.active
 }
 
 //AddVerticies adds the listed verticies to the graph, overwrites any existing

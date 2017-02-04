@@ -24,6 +24,13 @@ func NewGraph() *Graph {
 	return new
 }
 
+func (g *Graph) getListLen() int {
+	g.visiting.Lock()
+	l := g.visiting.len
+	g.visiting.Unlock()
+	return l
+}
+
 //AddNewVertex adds a new vertex at the next available index
 func (g *Graph) AddNewVertex() *Vertex {
 	for i, v := range g.Verticies {

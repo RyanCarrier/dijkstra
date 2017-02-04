@@ -32,17 +32,25 @@ func TestCorrect(t *testing.T) {
 
 }
 
-var benchNames = []string{"github.com/RyanCarrier", "github.com/ProfessorQ", "github.com/albertorestifo", "github.com/RyanCarrierMulti"}
+var benchNames = []string{"github.com/RyanCarrier", "github.com/ProfessorQ", "github.com/albertorestifo", "github.com/RyanCarrier"}
 
 func BenchmarkAll(b *testing.B) {
-	nodeIterations := 5
+	nodeIterations := 6
 	for i, n := range benchNames {
 		nodes := 1
 		for j := 0; j < nodeIterations; j++ {
 			nodes *= 4
-			b.Run(n+"/"+strconv.Itoa(nodes)+"Nodes", func(b *testing.B) {
-				benchmarkAlt(b, nodes, i)
-			})
+			if i == 3 {
+				for cores := 1; cores < 33; cores *= 2 {
+					b.Run(n+"/"+strconv.Itoa(nodes)+"Nodes/"+strconv.Itoa(cores)+"C", func(b *testing.B) {
+						benchmarkAlt(b, nodes, i, cores)
+					})
+				}
+			} else {
+				b.Run(n+"/"+strconv.Itoa(nodes)+"Nodes", func(b *testing.B) {
+					benchmarkAlt(b, nodes, i, 1)
+				})
+			}
 
 		}
 	}
@@ -58,7 +66,7 @@ func BenchmarkAll(b *testing.B) {
 //Mattomatics does not work.
 func BenchmarkMattomaticNodes4(b *testing.B)    { benchmarkAlt(b, 4, 3) }
 */
-func benchmarkAlt(b *testing.B, nodes, i int) {
+func benchmarkAlt(b *testing.B, nodes, i, j int) {
 	filename := "testdata/bench/" + strconv.Itoa(nodes) + ".txt"
 	if _, err := os.Stat(filename); err != nil {
 		Generate(nodes, filename)
@@ -69,9 +77,13 @@ func benchmarkAlt(b *testing.B, nodes, i int) {
 	case 1:
 		benchmarkProfQ(b, filename)
 	case 2:
-		benchmarkAR(b, filename)
+		if nodes > 2000 {
+			benchmarkAR(b, "testdata/bench/4.txt")
+		} else {
+			benchmarkAR(b, filename)
+		}
 	case 3:
-		benchmarkRCmulti(b, filename, 2)
+		benchmarkRCmulti(b, filename, j)
 	case 4:
 		benchmarkMM(b, filename)
 	default:
