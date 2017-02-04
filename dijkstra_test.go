@@ -1,7 +1,6 @@
 package dijkstra
 
 import (
-	"fmt"
 	"math"
 	"os"
 	"reflect"
@@ -26,9 +25,11 @@ func TestLoop(t *testing.T) {
 }
 
 func TestCorrect(t *testing.T) {
+
 	testSolution(t, getBSol(), nil, "testdata/B.txt", 0, 5, true)
 	testSolution(t, getKSolLong(), nil, "testdata/K.txt", 0, 4, false)
 	testSolution(t, getKSolShort(), nil, "testdata/K.txt", 0, 4, true)
+
 }
 
 var benchNames = []string{"github.com/RyanCarrier", "github.com/ProfessorQ", "github.com/albertorestifo", "github.com/RyanCarrierMulti"}
@@ -213,23 +214,25 @@ func testSolution(t *testing.T, best BestPath, wanterr error, filename string, f
 		graph2 := graph
 		got, err = graph.Shortest(from, to)
 		//Test low threads
-		for i := 1; i <= math.MaxInt32; i *= i {
-			//Tests; <2,147,483,647
-			// 1 -> 4 -> 16 -> 256 -> 65,536 -> 4,294,967,296 (won't run last one)
-			//All will get limited back but yolo
-			fmt.Println(i)
-			got2, _ := graph2.multiEvaluate(from, to, i, shortest)
-			//testErrors(t, wanterr, err2, filename)
-			distmethod := "Shortest"
-			//spew.Dump(graph2)
-			if got2.Distance != best.Distance {
-				t.Error(distmethod, " distance incorrect\n", filename, "\ngot: ", got2.Distance, "\nwant: ", best.Distance)
-			}
-			if !reflect.DeepEqual(got2.Path, best.Path) {
-				t.Error(distmethod, " path incorrect\n\n", filename, "got: ", got2.Path, "\nwant: ", best.Path)
-			}
-			if i < 2 {
-				i = 2
+		for j := 0; j < 1000; j++ {
+			for i := 1; i <= math.MaxInt32; i *= i {
+				//Tests; <2,147,483,647
+				// 1 -> 4 -> 16 -> 256 -> 65,536 -> 4,294,967,296 (won't run last one)
+				//All will get limited back but yolo
+				//	fmt.Println(i)
+				got2, _ := graph2.multiEvaluate(from, to, i, shortest)
+				//testErrors(t, wanterr, err2, filename)
+				distmethod := "Shortest"
+				//spew.Dump(graph2)
+				if got2.Distance != best.Distance {
+					t.Error(distmethod, " distance incorrect\n", filename, "\ngot: ", got2.Distance, "\nwant: ", best.Distance)
+				}
+				if !reflect.DeepEqual(got2.Path, best.Path) {
+					t.Error(distmethod, " path incorrect\n\n", filename, "got: ", got2.Path, "\nwant: ", best.Path)
+				}
+				if i < 2 {
+					i = 2
+				}
 			}
 		}
 	} else {

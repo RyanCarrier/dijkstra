@@ -5,7 +5,7 @@ import "sync"
 //Vertex is a single node in the network, contains it's ID, best distance (to
 // itself from the src) and the weight to go to each other connected node (Vertex)
 type Vertex struct {
-	sync.Mutex
+	sync.RWMutex
 	//ID of the Vertex
 	ID int
 	//Best distance to the Vertex

@@ -132,11 +132,24 @@ func (g *Graph) multiEvaluate(src, dest, threads int, shortest bool) (BestPath, 
 	g.setup(shortest, src)
 	wg.RLock()
 	for wg.threads > 0 || g.getListLen() > 0 {
+		//temp := 0
 		for ; wg.threads > 0 && g.getListLen() == 0; wg.lockUnlock() {
+			/*	if temp > 200 {
+					wg.RUnlock()
+					spew.Dump(wg)
+					spew.Dump(g.Verticies)
+					log.Fatal("err")
+				}
+			*/
+			//fmt.Print(".")
+			//time.Sleep(time.Millisecond * 20)
+			//temp++
 		}
 		for g.getListLen() > 0 {
 			//Visit the current lowest distanced Vertex
 			for ; wg.threads >= maxThreads; wg.lockUnlock() {
+				//fmt.Print("|")
+				//	time.Sleep(time.Millisecond * 20)
 			}
 			wg.RUnlock()
 			g.visiting.Lock()
@@ -187,27 +200,28 @@ func (g *Graph) multiVisitNode(dest int, shortest bool) {
 	}
 	//spew.Dump(current)
 	g.visiting.Unlock()
-	current.Lock()
-	defer current.Unlock()
+	current.RLock()
+	cd, cid := current.distance, current.ID
+	current.RUnlock()
 	//If we have hit the destination set the flag, cheaper than checking it's
 	// distance change at the end
-	if current.ID == dest {
+	if cid == dest {
 		g.visitedDest = true
 		return
 	}
 	//If the current distance is already worse than the best try another Vertex
-	if shortest && current.distance >= g.best || (!shortest && current.distance <= g.best) {
+	if (shortest && cd >= g.best) || (!shortest && cd <= g.best) {
 		return
 	}
 	for v, dist := range current.arcs {
-		if v == current.ID {
+		if v == cid {
 			//could deadlock if arc to self lol
 			continue
 		}
 		//Implement RWMutex instead
-		g.Verticies[v].Lock()
-		if (shortest && current.distance+dist < g.Verticies[v].distance) ||
-			(!shortest && current.distance+dist > g.Verticies[v].distance) {
+		g.Verticies[v].RLock()
+		if (shortest && cd+dist < g.Verticies[v].distance) ||
+			(!shortest && cd+dist > g.Verticies[v].distance) {
 			/*	if g.Verticies[v].bestVertex == current.ID && g.Verticies[v].ID != dest {
 				var vert int
 				for vert = v; vert != current.ID && vert != -1; vert = g.Verticies[vert].bestVertex {
@@ -216,15 +230,20 @@ func (g *Graph) multiVisitNode(dest int, shortest bool) {
 					log.Fatal(newErrLoop(current.ID, v))
 				}
 			}*/
+			g.Verticies[v].RUnlock()
+			g.Verticies[v].Lock()
 			g.Verticies[v].distance = current.distance + dist
 			g.Verticies[v].bestVertex = current.ID
+			g.Verticies[v].Unlock()
 			if v == dest {
 				g.best = current.distance + dist
+			} else {
+				g.visiting.Lock()
+				g.visiting.pushOrdered(g.Verticies[v])
+				g.visiting.Unlock()
 			}
-			g.visiting.Lock()
-			g.visiting.pushOrdered(g.Verticies[v])
-			g.visiting.Unlock()
+		} else {
+			g.Verticies[v].RUnlock()
 		}
-		g.Verticies[v].Unlock()
 	}
 }

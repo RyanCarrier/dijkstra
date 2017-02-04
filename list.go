@@ -96,16 +96,25 @@ func (l *linkedList) pushOrdered(v *Vertex) *element {
 	}
 	back := l.back()
 	if back.Value.distance < v.distance {
-		return l.insertValue(v, l.root.prev)
+		return l.removeDup(l.insertValue(v, l.root.prev))
 	}
 	current := l.front()
 	for current.Value.distance < v.distance && current.Value.ID != v.ID { //don't need to chack if current=back cause back already checked
 		current = current.next
 	}
 	if current.Value.ID == v.ID {
-		return current
+		return l.removeDup(current)
 	}
-	return l.insertValue(v, current.prev)
+	return l.removeDup(l.insertValue(v, current.prev))
+}
+
+func (l *linkedList) removeDup(e *element) *element {
+	for next := e.next; next != &l.root; next = next.next {
+		if next.Value == e.Value {
+			return l.remove(e)
+		}
+	}
+	return e
 }
 
 // insert inserts e after at, increments l.len, and returns e.

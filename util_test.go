@@ -63,7 +63,7 @@ func TestImportCorrectMap(t *testing.T) {
 	f := "testdata/L.txt"
 
 	test(t, Graph{
-		Verticies: []*Vertex{&Vertex{Mutex: sync.Mutex{}, ID: 0}, &Vertex{Mutex: sync.Mutex{}, ID: 1}, &Vertex{Mutex: sync.Mutex{}, ID: 2}}},
+		Verticies: []*Vertex{&Vertex{RWMutex: sync.RWMutex{}, ID: 0}, &Vertex{RWMutex: sync.RWMutex{}, ID: 1}, &Vertex{RWMutex: sync.RWMutex{}, ID: 2}}},
 		map[string]int{
 			"A": 0, "B": 1, "C": 2,
 		}, nil, f)
@@ -120,22 +120,22 @@ func getAGraph() Graph {
 	return Graph{
 		0, false,
 		[]*Vertex{
-			&Vertex{sync.Mutex{}, 0, 0, 0, map[int]int64{
+			&Vertex{sync.RWMutex{}, 0, 0, 0, map[int]int64{
 				1: 4,
 				2: 2},
 			},
-			&Vertex{sync.Mutex{}, 1, 0, 0, map[int]int64{
+			&Vertex{sync.RWMutex{}, 1, 0, 0, map[int]int64{
 				3: 2,
 				2: 3,
 				4: 3},
 			},
-			&Vertex{sync.Mutex{}, 2, 0, 0, map[int]int64{
+			&Vertex{sync.RWMutex{}, 2, 0, 0, map[int]int64{
 				1: 1,
 				3: 4,
 				4: 5},
 			},
-			&Vertex{sync.Mutex{}, 3, 0, 0, map[int]int64{}},
-			&Vertex{sync.Mutex{}, 4, 0, 0, map[int]int64{
+			&Vertex{sync.RWMutex{}, 3, 0, 0, map[int]int64{}},
+			&Vertex{sync.RWMutex{}, 4, 0, 0, map[int]int64{
 				3: 1},
 			},
 		},
@@ -150,26 +150,26 @@ func getBGraph() Graph {
 	return Graph{
 		0, false,
 		[]*Vertex{
-			&Vertex{sync.Mutex{}, 0, 0, 0, map[int]int64{
+			&Vertex{sync.RWMutex{}, 0, 0, 0, map[int]int64{
 				1: 4,
 				2: 2},
 			},
-			&Vertex{sync.Mutex{}, 1, 0, 0, map[int]int64{
+			&Vertex{sync.RWMutex{}, 1, 0, 0, map[int]int64{
 				3: 2,
 				2: 3,
 				4: 3},
 			},
-			&Vertex{sync.Mutex{}, 2, 0, 0, map[int]int64{
+			&Vertex{sync.RWMutex{}, 2, 0, 0, map[int]int64{
 				1: 1,
 				3: 4,
 				4: 5},
 			},
-			&Vertex{sync.Mutex{}, 3, 0, 0, map[int]int64{
+			&Vertex{sync.RWMutex{}, 3, 0, 0, map[int]int64{
 				5: 10}},
-			&Vertex{sync.Mutex{}, 4, 0, 0, map[int]int64{
+			&Vertex{sync.RWMutex{}, 4, 0, 0, map[int]int64{
 				3: 1},
 			},
-			&Vertex{sync.Mutex{}, 5, 0, 0, map[int]int64{
+			&Vertex{sync.RWMutex{}, 5, 0, 0, map[int]int64{
 				3: 10},
 			},
 		},
@@ -190,26 +190,26 @@ func getBSol() BestPath {
 func getCGraph() Graph {
 	return Graph{0, false,
 		[]*Vertex{
-			&Vertex{sync.Mutex{}, 0, 0, 0, map[int]int64{
+			&Vertex{sync.RWMutex{}, 0, 0, 0, map[int]int64{
 				1: -4,
 				2: 2},
 			},
-			&Vertex{sync.Mutex{}, 1, 0, 0, map[int]int64{
+			&Vertex{sync.RWMutex{}, 1, 0, 0, map[int]int64{
 				3: 2,
 				2: -3,
 				4: 3},
 			},
-			&Vertex{sync.Mutex{}, 2, 0, 0, map[int]int64{
+			&Vertex{sync.RWMutex{}, 2, 0, 0, map[int]int64{
 				1: 1,
 				3: 4,
 				4: 5},
 			},
-			&Vertex{sync.Mutex{}, 3, 0, 0, map[int]int64{
+			&Vertex{sync.RWMutex{}, 3, 0, 0, map[int]int64{
 				5: -10}},
-			&Vertex{sync.Mutex{}, 4, 0, 0, map[int]int64{
+			&Vertex{sync.RWMutex{}, 4, 0, 0, map[int]int64{
 				3: 1},
 			},
-			&Vertex{sync.Mutex{}, 5, 0, 0, map[int]int64{
+			&Vertex{sync.RWMutex{}, 5, 0, 0, map[int]int64{
 				3: -10},
 			},
 		},
@@ -224,13 +224,13 @@ func getGGraph() (Graph, map[string]int) {
 	return Graph{
 			0, false,
 			[]*Vertex{
-				&Vertex{sync.Mutex{}, 0, 0, 0, map[int]int64{
+				&Vertex{sync.RWMutex{}, 0, 0, 0, map[int]int64{
 					1: 2},
 				},
-				&Vertex{sync.Mutex{}, 1, 0, 0, map[int]int64{
+				&Vertex{sync.RWMutex{}, 1, 0, 0, map[int]int64{
 					2: 5},
 				},
-				&Vertex{sync.Mutex{}, 2, 0, 0, map[int]int64{
+				&Vertex{sync.RWMutex{}, 2, 0, 0, map[int]int64{
 					0: 1,
 					1: 1},
 				},
@@ -254,19 +254,19 @@ func getIGraph() Graph {
 	return Graph{
 		0, false,
 		[]*Vertex{
-			&Vertex{sync.Mutex{}, 0, 0, 0, map[int]int64{
+			&Vertex{sync.RWMutex{}, 0, 0, 0, map[int]int64{
 				1: 2},
 			},
-			&Vertex{sync.Mutex{}, 1, 0, 0, map[int]int64{
+			&Vertex{sync.RWMutex{}, 1, 0, 0, map[int]int64{
 				2: 3},
 			},
-			&Vertex{sync.Mutex{}, 2, 0, 0, map[int]int64{
+			&Vertex{sync.RWMutex{}, 2, 0, 0, map[int]int64{
 				3: 4},
 			},
-			&Vertex{sync.Mutex{}, 3, 0, 0, map[int]int64{
+			&Vertex{sync.RWMutex{}, 3, 0, 0, map[int]int64{
 				2: 5},
 			},
-			&Vertex{sync.Mutex{}, 4, 0, 0, map[int]int64{}},
+			&Vertex{sync.RWMutex{}, 4, 0, 0, map[int]int64{}},
 		},
 		newLinkedList(),
 		map[string]int{},
