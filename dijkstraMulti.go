@@ -47,6 +47,7 @@ func (g *Graph) multiEvaluate(src, dest, threads int, shortest bool) (BestPath, 
 
 //DOES NOT DETECT INF LOOPS
 func (g *Graph) multiVisitNode(dest int, shortest bool, wg *semWG) {
+
 	defer wg.dec()
 	var current *Vertex
 	g.visiting.Lock()
@@ -80,7 +81,8 @@ func (g *Graph) multiVisitNode(dest int, shortest bool, wg *semWG) {
 	for v, dist := range current.arcs {
 		fmt.Println("3")
 		select {
-		case <-current.quit:
+		case q := <-current.quit:
+			fmt.Println(q)
 			fmt.Println("dying")
 			return
 		default:

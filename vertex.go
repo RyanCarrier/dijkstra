@@ -24,8 +24,15 @@ func NewVertex(ID int) Vertex {
 
 func (v *Vertex) setActive(a bool) {
 	v.Lock()
-	v.active = a
-	v.Unlock()
+	defer v.Unlock()
+	//v.active = a
+	if !a {
+		select {
+		case <-v.quit:
+		default:
+		}
+	}
+
 }
 func (v *Vertex) getActive() bool {
 	v.RLock()
