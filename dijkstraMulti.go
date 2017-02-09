@@ -2,7 +2,7 @@ package dijkstra
 
 import (
 	"errors"
-	"fmt"
+	"time"
 )
 
 //DOES NOT DETECT INF LOOPS
@@ -60,75 +60,51 @@ func (g *Graph) multiVisitNode(dest int, shortest bool, wg *semWG) {
 	} else {
 		current = g.visiting.popBack()
 	}
-	//spew.Dump(current)
 	g.visiting.Unlock()
 	current.setActive(true)
 	defer current.setActive(false)
-	fmt.Println("0")
 	//don't have to lock cause writting never gets done to these areas
-	cdist, cid := current.distance, current.ID
+	current.RLock()
+	defer current.RUnlock()
 	//If we have hit the destination set the flag, cheaper than checking it's
 	// distance change at the end
-	if cid == dest {
+	if current.ID == dest {
 		return
 	}
-	fmt.Println("1")
 	//If the current distance is already worse than the best try another Vertex
-	if (shortest && cdist >= g.best) || (!shortest && cdist <= g.best) {
+	if (shortest && current.distance >= g.best) || (!shortest && current.distance <= g.best) {
 		return
 	}
-	fmt.Println("2")
 	for v, dist := range current.arcs {
-		fmt.Println("3")
+		current.RUnlock()
+		time.Sleep(time.Millisecond * 1)
+		current.RLock()
 		select {
-		case q := <-current.quit:
-			fmt.Println(q)
-			fmt.Println("dying")
+		case <-current.quit:
 			return
 		default:
-			fmt.Println("Loopin")
 		}
-		fmt.Println("4")
-		if v == cid {
+		if v == current.ID {
 			//could deadlock if arc to self lol
 			continue
 		}
-		fmt.Println("5")
-		//Implement RWMutex instead
 		g.Verticies[v].Lock()
-		fmt.Println("6")
-		if (shortest && cdist+dist < g.Verticies[v].distance) ||
-			(!shortest && cdist+dist > g.Verticies[v].distance) {
-			fmt.Println("7")
+		if (shortest && current.distance+dist < g.Verticies[v].distance) ||
+			(!shortest && current.distance+dist > g.Verticies[v].distance) {
 			//Check for loop
 			if g.Verticies[v].active {
-				//kill
-				fmt.Println("KILL ", v)
-				select {
-				case <-g.Verticies[v].quit:
-					fmt.Println("HE COULD QUIT")
-				default:
-					fmt.Println("HE CANT QUIT")
-				}
 				g.Verticies[v].quit <- true
-				fmt.Println("KILLIN ", v)
 			}
-			fmt.Println("8")
-			g.Verticies[v].distance = cdist + dist
-			g.Verticies[v].bestVertex = cid
-			fmt.Println("9")
+			g.Verticies[v].distance = current.distance + dist
+			g.Verticies[v].bestVertex = current.ID
 			if v == dest {
-				g.best = cdist + dist
+				g.best = current.distance + dist
 				g.visitedDest = true
 			} else {
 				g.visiting.Lock()
 				g.visiting.pushOrdered(g.Verticies[v])
 				g.visiting.Unlock()
 			}
-			/*g.Verticies[v].Unlock()
-			} else {
-				g.Verticies[v].Unlock()
-			*/
 		}
 		g.Verticies[v].Unlock()
 	}

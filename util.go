@@ -51,7 +51,7 @@ func Import(filename string) (g Graph, err error) {
 			tempArray := make([]Vertex, 1+i-len(g.Verticies))
 			pointerArray := make([]*Vertex, 1+i-len(g.Verticies))
 			for j := range tempArray {
-				tempArray[j].quit = make(chan bool)
+				tempArray[j].quit = make(chan bool,1)
 				pointerArray[j] = &tempArray[j]
 			}
 			g.Verticies = append(g.Verticies, pointerArray...)

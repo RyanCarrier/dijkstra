@@ -25,7 +25,7 @@ func NewVertex(ID int) Vertex {
 func (v *Vertex) setActive(a bool) {
 	v.Lock()
 	defer v.Unlock()
-	//v.active = a
+	v.active = a
 	if !a {
 		select {
 		case <-v.quit:
