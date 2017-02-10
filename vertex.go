@@ -12,10 +12,9 @@ type Vertex struct {
 	distance   int64
 	bestVertex int
 	//A set of all weights to the nodes in the map
-	arcs       map[int]int64
-	active     bool
-	quit       chan bool
-	stageDebug int
+	arcs   map[int]int64
+	active bool
+	quit   chan bool
 }
 
 //NewVertex creates a new vertex

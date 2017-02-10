@@ -124,21 +124,21 @@ func getAGraph() Graph {
 			&Vertex{sync.RWMutex{}, 0, 0, 0, map[int]int64{
 				1: 4,
 				2: 2},
-				false, make(chan bool, 1), 0},
+				false, make(chan bool, 1)},
 			&Vertex{sync.RWMutex{}, 1, 0, 0, map[int]int64{
 				3: 2,
 				2: 3,
 				4: 3},
-				false, make(chan bool, 1), 0},
+				false, make(chan bool, 1)},
 			&Vertex{sync.RWMutex{}, 2, 0, 0, map[int]int64{
 				1: 1,
 				3: 4,
 				4: 5},
-				false, make(chan bool, 1), 0},
-			&Vertex{sync.RWMutex{}, 3, 0, 0, map[int]int64{}, false, make(chan bool, 1), 0},
+				false, make(chan bool, 1)},
+			&Vertex{sync.RWMutex{}, 3, 0, 0, map[int]int64{}, false, make(chan bool, 1)},
 			&Vertex{sync.RWMutex{}, 4, 0, 0, map[int]int64{
 				3: 1},
-				false, make(chan bool, 1), 0,
+				false, make(chan bool, 1),
 			},
 		},
 		newLinkedList(),
@@ -155,25 +155,25 @@ func getBGraph() Graph {
 			&Vertex{sync.RWMutex{}, 0, 0, 0, map[int]int64{
 				1: 4,
 				2: 2},
-				false, make(chan bool, 1), 0},
+				false, make(chan bool, 1)},
 			&Vertex{sync.RWMutex{}, 1, 0, 0, map[int]int64{
 				3: 2,
 				2: 3,
 				4: 3},
-				false, make(chan bool, 1), 0},
+				false, make(chan bool, 1)},
 			&Vertex{sync.RWMutex{}, 2, 0, 0, map[int]int64{
 				1: 1,
 				3: 4,
 				4: 5},
-				false, make(chan bool, 1), 0},
+				false, make(chan bool, 1)},
 			&Vertex{sync.RWMutex{}, 3, 0, 0, map[int]int64{
-				5: 10}, false, make(chan bool, 1), 0},
+				5: 10}, false, make(chan bool, 1)},
 			&Vertex{sync.RWMutex{}, 4, 0, 0, map[int]int64{
 				3: 1},
-				false, make(chan bool, 1), 0},
+				false, make(chan bool, 1)},
 			&Vertex{sync.RWMutex{}, 5, 0, 0, map[int]int64{
 				3: 10},
-				false, make(chan bool, 1), 0,
+				false, make(chan bool, 1),
 			},
 		},
 		newLinkedList(),
@@ -196,25 +196,25 @@ func getCGraph() Graph {
 			&Vertex{sync.RWMutex{}, 0, 0, 0, map[int]int64{
 				1: -4,
 				2: 2},
-				false, make(chan bool, 1), 0},
+				false, make(chan bool, 1)},
 			&Vertex{sync.RWMutex{}, 1, 0, 0, map[int]int64{
 				3: 2,
 				2: -3,
 				4: 3},
-				false, make(chan bool, 1), 0},
+				false, make(chan bool, 1)},
 			&Vertex{sync.RWMutex{}, 2, 0, 0, map[int]int64{
 				1: 1,
 				3: 4,
 				4: 5},
-				false, make(chan bool, 1), 0},
+				false, make(chan bool, 1)},
 			&Vertex{sync.RWMutex{}, 3, 0, 0, map[int]int64{
-				5: -10}, false, make(chan bool, 1), 0},
+				5: -10}, false, make(chan bool, 1)},
 			&Vertex{sync.RWMutex{}, 4, 0, 0, map[int]int64{
 				3: 1},
-				false, make(chan bool, 1), 0},
+				false, make(chan bool, 1)},
 			&Vertex{sync.RWMutex{}, 5, 0, 0, map[int]int64{
 				3: -10},
-				false, make(chan bool, 1), 0,
+				false, make(chan bool, 1),
 			},
 		},
 		newLinkedList(),
@@ -229,14 +229,14 @@ func getGGraph() (Graph, map[string]int) {
 			0, false,
 			[]*Vertex{
 				&Vertex{sync.RWMutex{}, 0, 0, 0, map[int]int64{
-					1: 2}, false, make(chan bool, 1), 0,
+					1: 2}, false, make(chan bool, 1),
 				},
 				&Vertex{sync.RWMutex{}, 1, 0, 0, map[int]int64{
-					2: 5}, false, make(chan bool, 1), 0,
+					2: 5}, false, make(chan bool, 1),
 				},
 				&Vertex{sync.RWMutex{}, 2, 0, 0, map[int]int64{
 					0: 1,
-					1: 1}, false, make(chan bool, 1), 0,
+					1: 1}, false, make(chan bool, 1),
 				},
 			},
 			newLinkedList(),
@@ -260,17 +260,17 @@ func getIGraph() Graph {
 		[]*Vertex{
 			&Vertex{sync.RWMutex{}, 0, 0, 0, map[int]int64{
 				1: 2},
-				false, make(chan bool, 1), 0},
+				false, make(chan bool, 1)},
 			&Vertex{sync.RWMutex{}, 1, 0, 0, map[int]int64{
 				2: 3},
-				false, make(chan bool, 1), 0},
+				false, make(chan bool, 1)},
 			&Vertex{sync.RWMutex{}, 2, 0, 0, map[int]int64{
 				3: 4},
-				false, make(chan bool, 1), 0},
+				false, make(chan bool, 1)},
 			&Vertex{sync.RWMutex{}, 3, 0, 0, map[int]int64{
 				2: 5},
-				false, make(chan bool, 1), 0},
-			&Vertex{sync.RWMutex{}, 4, 0, 0, map[int]int64{}, false, make(chan bool, 1), 0},
+				false, make(chan bool, 1)},
+			&Vertex{sync.RWMutex{}, 4, 0, 0, map[int]int64{}, false, make(chan bool, 1)},
 		},
 		newLinkedList(),
 		map[string]int{},

@@ -99,23 +99,17 @@ func (eval *evaluation) multiVisitNode() {
 		return
 	}
 	current := eval.getNextVertex()
-	current.stageDebug = 1
 	eval.visiting.Unlock()
 	current.setActive(true)
 	defer current.setActive(false)
-	current.stageDebug = 2
 	//don't have to lock cause writting never gets done to these areas
 	current.RLock()
 	defer current.RUnlock()
-	current.stageDebug = 4
 	//If the current distance is already worse than the best try another Vertex
 	if (eval.shortest && current.distance >= eval.best) || (!eval.shortest && current.distance <= eval.best) {
-		current.stageDebug = -1
 		return
 	}
-	current.stageDebug = 5
 	eval.checkArcs(current)
-	current.stageDebug = -4
 }
 
 func (eval *evaluation) getNextVertex() *Vertex {
@@ -126,55 +120,41 @@ func (eval *evaluation) getNextVertex() *Vertex {
 }
 
 func (eval *evaluation) checkArcs(current *Vertex) {
-	current.stageDebug = 6
 	for v, dist := range current.arcs {
-		current.stageDebug = 7
 		select {
 		case <-current.quit:
 			return
 		default:
 		}
-		current.stageDebug = 10
 		if v == current.ID {
-			current.stageDebug = -2
 			//could deadlock if arc to self lol
 			continue
 		}
-		current.stageDebug = 10 + 10000*v
 		eval.Verticies[v].RLock()
-		current.stageDebug = 11
 		if (eval.shortest && current.distance+dist < eval.Verticies[v].distance) ||
 			(!eval.shortest && current.distance+dist > eval.Verticies[v].distance) {
 			//Check for loop
-			current.stageDebug = 12
 			if eval.Verticies[v].active {
-				current.stageDebug = 1211111
+				//ensures only 1 sitting in the queue
 				select {
 				case <-eval.Verticies[v].quit:
 				default:
 				}
-				current.stageDebug = 13
 				eval.Verticies[v].quit <- true
 			}
-			current.stageDebug = 14
 			eval.Verticies[v].swapToLock()
 			eval.Verticies[v].distance = current.distance + dist
 			eval.Verticies[v].bestVertex = current.ID
 			eval.Verticies[v].swapToRLock()
-			current.stageDebug = 15
 			if v == eval.dest {
-				current.stageDebug = 16
 				eval.best = current.distance + dist
 				eval.visitedDest = true
 			} else {
-				current.stageDebug = 17
 				eval.visiting.Lock()
 				eval.visiting.pushOrdered(eval.Verticies[v])
 				eval.visiting.Unlock()
 			}
 		}
-		current.stageDebug = 18
 		eval.Verticies[v].RUnlock()
 	}
-	current.stageDebug = -3
 }
