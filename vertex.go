@@ -23,6 +23,15 @@ func NewVertex(ID int) Vertex {
 	return Vertex{ID: ID, arcs: map[int]int64{}}
 }
 
+func (v *Vertex) swapToLock() {
+	v.RUnlock()
+	v.Lock()
+}
+
+func (v *Vertex) swapToRLock() {
+	v.Unlock()
+	v.RLock()
+}
 func (v *Vertex) setActive(a bool) {
 	v.Lock()
 	defer v.Unlock()

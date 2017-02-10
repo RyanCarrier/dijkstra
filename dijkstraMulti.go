@@ -102,8 +102,8 @@ func (eval *evaluation) multiVisitNode() {
 	current.stageDebug = 1
 	eval.visiting.Unlock()
 	current.setActive(true)
-	current.stageDebug = 2
 	defer current.setActive(false)
+	current.stageDebug = 2
 	//don't have to lock cause writting never gets done to these areas
 	current.RLock()
 	defer current.RUnlock()
@@ -115,6 +115,7 @@ func (eval *evaluation) multiVisitNode() {
 	}
 	current.stageDebug = 5
 	eval.checkArcs(current)
+	current.stageDebug = -4
 }
 
 func (eval *evaluation) getNextVertex() *Vertex {
@@ -128,14 +129,9 @@ func (eval *evaluation) checkArcs(current *Vertex) {
 	current.stageDebug = 6
 	for v, dist := range current.arcs {
 		current.stageDebug = 7
-		current.RUnlock()
-		//	time.Sleep(time.Millisecond * 1)
-		current.stageDebug = 8
-		current.RLock()
-		current.stageDebug = 9
 		select {
 		case <-current.quit:
-		//	return
+			return
 		default:
 		}
 		current.stageDebug = 10
@@ -161,12 +157,10 @@ func (eval *evaluation) checkArcs(current *Vertex) {
 				eval.Verticies[v].quit <- true
 			}
 			current.stageDebug = 14
-			eval.Verticies[v].RUnlock()
-			eval.Verticies[v].Lock()
+			eval.Verticies[v].swapToLock()
 			eval.Verticies[v].distance = current.distance + dist
 			eval.Verticies[v].bestVertex = current.ID
-			eval.Verticies[v].Unlock()
-			eval.Verticies[v].RLock()
+			eval.Verticies[v].swapToRLock()
 			current.stageDebug = 15
 			if v == eval.dest {
 				current.stageDebug = 16
