@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"os"
 	"time"
 
 	"github.com/davecgh/go-spew/spew"
@@ -73,7 +74,33 @@ func (eval *evaluation) multiLoop() {
 			eval.RLock()
 		}
 	}
+	retry := false
+	for a := range eval.Verticies {
+		select {
+		case u := <-eval.Verticies[a].quit:
+			fmt.Fprintln(os.Stderr, "WASTED UPDATEEE=========================================================")
+			if (eval.shortest && u.newBestDist < eval.Verticies[a].distance) ||
+				(!eval.shortest && u.newBestDist > eval.Verticies[a].distance) {
+				eval.Verticies[a].Lock()
+				eval.Verticies[a].bestVertex = u.newBestVertex
+				eval.Verticies[a].distance = u.newBestDist
+				eval.Verticies[a].Unlock()
+				eval.visiting.pushOrdered(eval.Verticies[a])
+				retry = true
+			}
+		default:
+			//fmt.Fprintln(os.Stderr, "NO WASTED UPDATE", a)
+		}
+		if eval.Verticies[a].active {
+			retry = true
+			fmt.Fprintln(os.Stderr, "WTF I'm NOT DONE YET!!+!+!+!+!+!+")
+		}
+	}
+
 	eval.RUnlock()
+	if retry {
+		eval.multiLoop()
+	}
 }
 
 func (g *Graph) multiSetup(src, dest, threads int, shortest bool) *evaluation {
@@ -100,15 +127,14 @@ func (eval *evaluation) multiVisitNode() {
 	}
 	current := eval.getNextVertex()
 	eval.visiting.Unlock()
-	current.setActive(true)
-	defer current.setActive(false)
 	//don't have to lock cause writting never gets done to these areas
 	current.RLock()
-	defer current.RUnlock()
 	//If the current distance is already worse than the best try another Vertex
 	if (eval.shortest && current.distance >= eval.best) || (!eval.shortest && current.distance <= eval.best) {
+		current.RUnlock()
 		return
 	}
+	current.RUnlock()
 	eval.checkArcs(current)
 }
 
@@ -120,10 +146,27 @@ func (eval *evaluation) getNextVertex() *Vertex {
 }
 
 func (eval *evaluation) checkArcs(current *Vertex) {
+	current.setActive(true)
+	defer current.setActive(false)
+	/*spew.Dump(current)
+	spew.Dump(eval)
+	log.Fatal("FUk u")*/
+	current.RLock()
+	defer current.RUnlock()
+	var u update
 	for v, dist := range current.arcs {
 		select {
-		case <-current.quit:
-			return
+		case u = <-current.quit:
+			fmt.Fprintln(os.Stderr, "===================GOT UPDATE============", fmt.Sprintf("%+v", u))
+			if (eval.shortest && u.newBestDist < current.distance) ||
+				(!eval.shortest && u.newBestDist > current.distance) {
+				current.swapToLock()
+				current.bestVertex = u.newBestVertex
+				current.distance = u.newBestDist
+				current.swapToRLock()
+				eval.checkArcs(current)
+				return
+			}
 		default:
 		}
 		if v == current.ID {
@@ -135,24 +178,35 @@ func (eval *evaluation) checkArcs(current *Vertex) {
 			(!eval.shortest && current.distance+dist > eval.Verticies[v].distance) {
 			//Check for loop
 			if eval.Verticies[v].active {
+
 				//ensures only 1 sitting in the queue
 				select {
-				case <-eval.Verticies[v].quit:
+				case u = <-eval.Verticies[v].quit:
+					fmt.Fprintln(os.Stderr, "===================INTERCEPTED UPDATE============", fmt.Sprintf("%+v", u))
+					if (eval.shortest && u.newBestDist > current.distance+dist) ||
+						(!eval.shortest && u.newBestDist < current.distance+dist) {
+						u = update{current.ID, current.distance + dist}
+					}
 				default:
+					u = update{current.ID, current.distance + dist}
 				}
-				eval.Verticies[v].quit <- true
-			}
-			eval.Verticies[v].swapToLock()
-			eval.Verticies[v].distance = current.distance + dist
-			eval.Verticies[v].bestVertex = current.ID
-			eval.Verticies[v].swapToRLock()
-			if v == eval.dest {
-				eval.best = current.distance + dist
-				eval.visitedDest = true
+				fmt.Fprintln(os.Stderr, "SENDING UPDATE", fmt.Sprintf("%+v", u), " to ", v)
+				//go func(v int, u update) {
+				eval.Verticies[v].quit <- u
+				//}(v, u)
 			} else {
+				eval.Verticies[v].swapToLock()
+				eval.Verticies[v].distance = current.distance + dist
+				eval.Verticies[v].bestVertex = current.ID
+				eval.Verticies[v].swapToRLock()
+				if v == eval.dest {
+					eval.best = current.distance + dist
+					eval.visitedDest = true
+				}
 				eval.visiting.Lock()
 				eval.visiting.pushOrdered(eval.Verticies[v])
 				eval.visiting.Unlock()
+
 			}
 		}
 		eval.Verticies[v].RUnlock()

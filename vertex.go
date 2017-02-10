@@ -14,7 +14,12 @@ type Vertex struct {
 	//A set of all weights to the nodes in the map
 	arcs   map[int]int64
 	active bool
-	quit   chan bool
+	quit   chan update
+}
+
+type update struct {
+	newBestVertex int
+	newBestDist   int64
 }
 
 //NewVertex creates a new vertex

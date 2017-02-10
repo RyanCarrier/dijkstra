@@ -223,6 +223,7 @@ func testSolution(t *testing.T, best BestPath, wanterr error, filename string, f
 	}
 	var got BestPath
 	if shortest {
+
 		graph2 := graph
 		got, err = graph.Shortest(from, to)
 		//Test low threads
@@ -240,7 +241,21 @@ func testSolution(t *testing.T, best BestPath, wanterr error, filename string, f
 					t.Error(distmethod, " distance incorrect\n", filename, "\ngot: ", got2.Distance, "\nwant: ", best.Distance)
 				}
 				if !reflect.DeepEqual(got2.Path, best.Path) {
-					t.Error(distmethod, " path incorrect\n\n", filename, "got: ", got2.Path, "\nwant: ", best.Path)
+					t.Error(distmethod, " distance incorrect\n", filename, "\ngot: ", got2.Distance, "\nwant: ", best.Distance, " path incorrect\n\n", filename, "got: ", got2.Path, "\nwant: ", best.Path)
+					/*
+						c := spew.NewDefaultConfig()
+						c.MaxDepth = 4
+						c.Indent = "   "
+						fmt.Println(distmethod, " distance incorrect", filename, "got: ", got2.Distance, "want: ", best.Distance)
+						fmt.Println(got2.Path, "==========", best.Path)
+						graph, _ = Import(filename)
+						graph.Shortest(from, to)
+						for a := range graph2.Verticies {
+							fmt.Println(a, ":", graph2.Verticies[a].distance, "===", a, ":", graph.Verticies[a].distance)
+						}
+						fmt.Println("====", filename, "====", best.Path)
+						c.Dump(graph2)
+						log.Fatal("exit")*/
 				}
 				if i < 2 {
 					i = 2
