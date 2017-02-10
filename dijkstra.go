@@ -53,10 +53,6 @@ func (g *Graph) evaluate(src, dest int, shortest bool) (BestPath, error) {
 		}
 		//If we have hit the destination set the flag, cheaper than checking it's
 		// distance change at the end
-		if current.ID == dest {
-			g.visitedDest = true
-			continue
-		}
 		//If the current distance is already worse than the best try another Vertex
 		if shortest && current.distance >= g.best || (!shortest && current.distance <= g.best) {
 			continue
@@ -75,6 +71,7 @@ func (g *Graph) evaluate(src, dest int, shortest bool) (BestPath, error) {
 				if v == dest {
 					//If this is the destination update best, so we can stop looking at
 					// useless Verticies
+					g.visitedDest = true
 					g.best = current.distance + dist
 				}
 				//Push this updated Vertex into the list to be evaluated, pushes in
