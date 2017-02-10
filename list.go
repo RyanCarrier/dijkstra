@@ -1,9 +1,6 @@
 package dijkstra
 
-import (
-	"log"
-	"sync"
-)
+import "sync"
 
 //THE FOLLOWING FILE IS BASED FROM GO AUTHORS EDITED MINORLY AND LAZILY TO SUIT MY NEEDS
 //https://golang.org/src/container/list/list.go?m=text
@@ -94,7 +91,6 @@ func (l *linkedList) lazyinit() {
 // (ascending)
 func (l *linkedList) pushOrdered(v *Vertex) *element {
 	l.lazyinit()
-
 	if l.len == 0 {
 		return l.pushFront(v)
 	}
@@ -106,7 +102,7 @@ func (l *linkedList) pushOrdered(v *Vertex) *element {
 	for current.Value.distance < v.distance && current.Value.ID != v.ID { //don't need to chack if current=back cause back already checked
 		if current.next == nil || current.next.Value == nil {
 			//current.next = &current.list.root
-			log.Fatal("WTF")
+			//log.Fatal("WTF")
 			break
 		}
 		current = current.next

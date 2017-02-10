@@ -1,13 +1,17 @@
 package dijkstra
 
 import (
+	"fmt"
+	"log"
 	"math"
 	"os"
 	"reflect"
+	"runtime"
 	"strconv"
 	"testing"
 
 	ar "github.com/albertorestifo/dijkstra"
+	"github.com/davecgh/go-spew/spew"
 
 	pq "github.com/RyanCarrier/dijkstra-1"
 	mm "github.com/mattomatic/dijkstra/dijkstra"
@@ -51,14 +55,7 @@ func BenchmarkAll(b *testing.B) {
 					benchmarkAlt(b, nodes, i, 1)
 				})
 			}
-
 		}
-	}
-	//Cleanup
-	nodes := 1
-	for j := 0; j < nodeIterations; j++ {
-		nodes *= 4
-		os.Remove("testdata/bench/" + strconv.Itoa(nodes) + ".txt")
 	}
 }
 
@@ -71,6 +68,7 @@ func benchmarkAlt(b *testing.B, nodes, i, j int) {
 	if _, err := os.Stat(filename); err != nil {
 		Generate(nodes, filename)
 	}
+	runtime.GC()
 	switch i {
 	case 0:
 		benchmarkRC(b, filename)
@@ -169,7 +167,10 @@ func benchmarkProfQ(b *testing.B, filename string) {
 }
 
 func benchmarkRC(b *testing.B, filename string) {
-	graph, _ := Import(filename)
+	graph, err := Import(filename)
+	if err != nil {
+		log.Fatal("ERROR USING ", filename, " ERROR:", err)
+	}
 	src, dest := 0, len(graph.Verticies)-1
 	//====RESET TIMER BEFORE LOOP====
 	b.ResetTimer()
@@ -232,30 +233,27 @@ func testSolution(t *testing.T, best BestPath, wanterr error, filename string, f
 				//Tests; <2,147,483,647
 				// 1 -> 4 -> 16 -> 256 -> 65,536 -> 4,294,967,296 (won't run last one)
 				//All will get limited back but yolo
-				//	fmt.Println(i)
 				got2, _ := graph2.multiEvaluate(from, to, i, shortest)
 				//testErrors(t, wanterr, err2, filename)
 				distmethod := "Shortest"
 				//spew.Dump(graph2)
-				if got2.Distance != best.Distance {
-					t.Error(distmethod, " distance incorrect\n", filename, "\ngot: ", got2.Distance, "\nwant: ", best.Distance)
-				}
-				if !reflect.DeepEqual(got2.Path, best.Path) {
+				if got2.Distance != best.Distance || !reflect.DeepEqual(got2.Path, best.Path) {
 					t.Error(distmethod, " distance incorrect\n", filename, "\ngot: ", got2.Distance, "\nwant: ", best.Distance, " path incorrect\n\n", filename, "got: ", got2.Path, "\nwant: ", best.Path)
-					/*
-						c := spew.NewDefaultConfig()
-						c.MaxDepth = 4
-						c.Indent = "   "
-						fmt.Println(distmethod, " distance incorrect", filename, "got: ", got2.Distance, "want: ", best.Distance)
-						fmt.Println(got2.Path, "==========", best.Path)
-						graph, _ = Import(filename)
-						graph.Shortest(from, to)
-						for a := range graph2.Verticies {
-							fmt.Println(a, ":", graph2.Verticies[a].distance, "===", a, ":", graph.Verticies[a].distance)
-						}
-						fmt.Println("====", filename, "====", best.Path)
-						c.Dump(graph2)
-						log.Fatal("exit")*/
+
+					c := spew.NewDefaultConfig()
+					c.MaxDepth = 4
+					c.Indent = "   "
+					fmt.Println("\n", distmethod, " distance incorrect", filename, "got: ", got2.Distance, "want: ", best.Distance)
+					fmt.Println(got2.Path, "==========", best.Path)
+					graph, _ = Import(filename)
+					graph.Shortest(from, to)
+					fmt.Println("")
+					for a := range graph2.Verticies {
+						fmt.Println(a, ":", graph2.Verticies[a].distance, "===", a, ":", graph.Verticies[a].distance)
+					}
+					fmt.Println("====", filename, "====", best.Path)
+					c.Dump(graph2)
+					log.Fatal("exit")
 				}
 				if i < 2 {
 					i = 2
