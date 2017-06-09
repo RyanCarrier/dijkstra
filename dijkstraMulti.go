@@ -64,19 +64,26 @@ func (g *Graph) multiEvaluate(src, dest, threads int, shortest bool) (BestPath, 
 	return eval.finally(src, dest)
 }
 
-func (eval *evaluation) multiLoop() {
+func (eval *evaluation) getThreads() int {
 	eval.RLock()
-	for eval.threads > 0 || eval.getListLen() > 0 {
-		for ; eval.threads > 0 && eval.getListLen() == 0; eval.lockUnlock() {
+	t := eval.threads
+	eval.RUnlock()
+	return t
+}
+
+func (eval *evaluation) multiLoop() {
+	MT := eval.maxThreads
+	for eval.getThreads() > 0 || eval.getListLen() > 0 {
+		for eval.getThreads() > 0 && eval.getListLen() == 0 {
 		}
-		for eval.getListLen() > 0 {
+		if eval.getListLen() > 0 {
 			//Visit the current lowest distanced Vertex
-			for ; eval.threads >= eval.maxThreads; eval.lockUnlock() {
+			for eval.getThreads() >= MT {
 			}
-			eval.RUnlock()
 			eval.visiting.Lock()
 			if eval.visiting.len > 0 {
 				eval.incr()
+				eval.visiting.Lock()
 				go eval.multiVisitNode()
 			}
 			eval.visiting.Unlock()
@@ -103,7 +110,7 @@ func (g *Graph) multiSetup(src, dest, threads int, shortest bool) *evaluation {
 //DOES NOT DETECT INF LOOPS
 func (eval *evaluation) multiVisitNode() {
 	defer eval.dec()
-	eval.visiting.Lock()
+	//Check if been removed
 	if eval.visiting.len == 0 {
 		eval.visiting.Unlock()
 		return
@@ -138,21 +145,7 @@ func (eval *evaluation) checkArcs(current *Vertex) {
 	defer current.RUnlock()
 	//	var u update
 	for v, dist := range current.arcs {
-		/*
-			select {
-			case u = <-current.quit:
-				fmt.Fprintln(os.Stderr, "===================GOT UPDATE============", fmt.Sprintf("%+v", u))
-				if (eval.shortest && u.newBestDist < current.distance) ||
-					(!eval.shortest && u.newBestDist > current.distance) {
-					current.swapToLock()
-					current.bestVertex = u.newBestVertex
-					current.distance = u.newBestDist
-					current.swapToRLock()
-					eval.checkArcs(current)
-					return
-				}
-			default:
-			}*/
+
 		if v == current.ID {
 			//could deadlock if arc to self lol
 			continue
