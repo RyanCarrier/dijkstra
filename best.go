@@ -1,5 +1,7 @@
 package dijkstra
 
+import "github.com/davecgh/go-spew/spew"
+
 //BestPath contains the solution of the most optimal path
 type BestPath struct {
 	Distance int64
@@ -8,6 +10,9 @@ type BestPath struct {
 
 func (g *Graph) bestPath(src, dest int) BestPath {
 	var path []int
+	s := spew.NewDefaultConfig()
+	s.Indent = "\t"
+	//s.Dump(g)
 	for c := g.Verticies[dest]; c.ID != src; c = g.Verticies[c.bestVertex] {
 		path = append(path, c.ID)
 	}

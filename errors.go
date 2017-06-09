@@ -20,5 +20,5 @@ var ErrLoopDetected = errors.New("Infinite loop detected")
 
 //NewErrLoop generates a new error with details for loop error
 func newErrLoop(a, b int) error {
-	return errors.New(fmt.Sprint(ErrLoopDetected.Error(), "From node '", a, "' to node '", b, "'"))
+	return errors.New(fmt.Sprint(ErrLoopDetected.Error(), " from node '", a, "' to node '", b, "'"))
 }

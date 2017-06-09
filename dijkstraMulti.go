@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"runtime"
 	"time"
 
 	"github.com/davecgh/go-spew/spew"
@@ -18,10 +19,19 @@ type evaluation struct {
 	maxThreads int
 }
 
-//DOES NOT DETECT INF LOOPS
+//MultiShortest evaluates shortest path using multiple gorountines (maxing at
+// amount of nodes or GOMAXPROCS)
+func (g *Graph) MultiShortest(src, dest int) (BestPath, error) {
+	return g.multiEvaluate(src, dest, runtime.GOMAXPROCS(0), true)
+}
+
+//DOES NOT DETECT INF LOOPS jkz it should now
 func (g *Graph) multiEvaluate(src, dest, threads int, shortest bool) (BestPath, error) {
 	if threads < 1 {
 		return BestPath{}, errors.New("threads must be greater than 0")
+	}
+	if threads == 1 {
+		return g.evaluate(src, dest, shortest)
 	}
 	eval := g.multiSetup(src, dest, threads, shortest)
 	timer := time.NewTimer(30 * time.Second)
@@ -72,37 +82,10 @@ func (eval *evaluation) multiLoop() {
 			eval.visiting.Unlock()
 			eval.RLock()
 		}
-	} /*
-		retry := false
-		for a := range eval.Verticies {
-			select {
-			case u := <-eval.Verticies[a].quit:
-				fmt.Fprintln(os.Stderr, "WASTED UPDATEEE=========================================================")
-				if (eval.shortest && u.newBestDist < eval.Verticies[a].distance) ||
-					(!eval.shortest && u.newBestDist > eval.Verticies[a].distance) {
-					eval.Verticies[a].Lock()
-					eval.Verticies[a].bestVertex = u.newBestVertex
-					eval.Verticies[a].distance = u.newBestDist
-					eval.Verticies[a].Unlock()
-					eval.visiting.pushOrdered(eval.Verticies[a])
-					retry = true
-				}
-			default:
-				//fmt.Fprintln(os.Stderr, "NO WASTED UPDATE", a)
-			}
-			if eval.Verticies[a].active {
-				retry = true
-				fmt.Fprintln(os.Stderr, "WTF I'm NOT DONE YET!!+!+!+!+!+!+")
-			}
-		}
-
-		eval.RUnlock()
-		if retry {
-			eval.multiLoop()
-		}*/
-	//	time.Sleep(time.Second * 2)
+	}
 }
 
+//multiSetup sets up the graph for evaluation
 func (g *Graph) multiSetup(src, dest, threads int, shortest bool) *evaluation {
 	wg := semWG{}
 	nodes := len(g.Verticies)
@@ -177,26 +160,7 @@ func (eval *evaluation) checkArcs(current *Vertex) {
 		eval.Verticies[v].RLock()
 		if (eval.shortest && current.distance+dist < eval.Verticies[v].distance) ||
 			(!eval.shortest && current.distance+dist > eval.Verticies[v].distance) {
-			//Check for loop
-			//if eval.Verticies[v].active {
 
-			//ensures only 1 sitting in the queue
-			/*
-				select {
-				case u = <-eval.Verticies[v].quit:
-					fmt.Fprintln(os.Stderr, "===================INTERCEPTED UPDATE============", fmt.Sprintf("%+v", u))
-					if (eval.shortest && u.newBestDist > current.distance+dist) ||
-						(!eval.shortest && u.newBestDist < current.distance+dist) {
-						u = update{current.ID, current.distance + dist}
-					}
-				default:
-					u = update{current.ID, current.distance + dist}
-				}
-				fmt.Fprintln(os.Stderr, "SENDING UPDATE", fmt.Sprintf("%+v", u), " to ", v)
-				//go func(v int, u update) {
-				eval.Verticies[v].quit <- u
-				//}(v, u)*/
-			//		} //else {
 			eval.Verticies[v].swapToLock()
 			//make sure we are still right...
 			if (eval.shortest && current.distance+dist < eval.Verticies[v].distance) ||

@@ -13,9 +13,9 @@ func (g *Graph) Longest(src, dest int) (BestPath, error) {
 }
 
 func (g *Graph) finally(src, dest int) (BestPath, error) {
-	//if !g.visitedDest {
-	//	return BestPath{}, ErrNoPath
-	//}
+	if !g.visitedDest {
+		return BestPath{}, ErrNoPath
+	}
 	return g.bestPath(src, dest), nil
 }
 
@@ -29,13 +29,14 @@ func (g *Graph) setup(shortest bool, src int) {
 	// set all best verticies to -1 (unused)
 	if shortest {
 		g.setDefaults(int64(math.MaxInt64)-2, -1)
-		g.best = int64(math.MaxInt64)
+		g.best = int64(math.MaxInt64 - 1)
 	} else {
 		g.setDefaults(int64(math.MinInt64)+2, -1)
-		g.best = int64(math.MinInt64)
+		g.best = int64(math.MinInt64 + 1)
 	}
 	//Set the distance of initial vertex 0
 	g.Verticies[src].distance = 0
+
 	//Add the source vertex to the list
 	g.visiting.pushFront(g.Verticies[src])
 }
@@ -53,11 +54,19 @@ func (g *Graph) evaluate(src, dest int, shortest bool) (BestPath, error) {
 		}
 		//If we have hit the destination set the flag, cheaper than checking it's
 		// distance change at the end
+		if current.ID == dest {
+			g.visitedDest = true
+			continue
+		}
 		//If the current distance is already worse than the best try another Vertex
 		if shortest && current.distance >= g.best || (!shortest && current.distance <= g.best) {
 			continue
 		}
 		for v, dist := range current.arcs {
+			if v == current.ID {
+				//could deadlock if arc to self lol
+				continue
+			}
 			//If the arc has better access, than the current best, update the Vertex being touched
 			if (shortest && current.distance+dist < g.Verticies[v].distance) ||
 				(!shortest && current.distance+dist > g.Verticies[v].distance) {
@@ -71,7 +80,6 @@ func (g *Graph) evaluate(src, dest int, shortest bool) (BestPath, error) {
 				if v == dest {
 					//If this is the destination update best, so we can stop looking at
 					// useless Verticies
-					g.visitedDest = true
 					g.best = current.distance + dist
 				}
 				//Push this updated Vertex into the list to be evaluated, pushes in
