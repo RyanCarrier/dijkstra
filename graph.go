@@ -17,11 +17,24 @@ type Graph struct {
 	highestMapIndex int
 }
 
+type newGraphInterface interface {
+	NewGraph() *Graph
+}
+
 //NewGraph creates a new empty graph
 func NewGraph() *Graph {
 	new := &Graph{}
 	new.mapping = map[string]int{}
 	return new
+}
+
+//NewGraph creates a new graph populated with numVertices vertices
+func NewGraph(numVertices int) *Graph {
+	graph := NewGraph()
+	for i := 0; i < numVertices; i++ {
+		graph.AddVertex(i)
+	}
+	return graph
 }
 
 //AddNewVertex adds a new vertex at the next available index
