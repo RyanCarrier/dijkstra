@@ -24,6 +24,15 @@ func NewGraph() *Graph {
 	return new
 }
 
+//NewGraphN creates a new graph populated with numVertices vertices
+func NewGraphN(numVertices int) *Graph {
+	graph := NewGraph()
+	for i := 0; i < numVertices; i++ {
+		graph.AddVertex(i)
+	}
+	return graph
+}
+
 //AddNewVertex adds a new vertex at the next available index
 func (g *Graph) AddNewVertex() *Vertex {
 	for i, v := range g.Verticies {
