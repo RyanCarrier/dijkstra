@@ -17,10 +17,6 @@ type Graph struct {
 	highestMapIndex int
 }
 
-type newGraphInterface interface {
-	NewGraph() *Graph
-}
-
 //NewGraph creates a new empty graph
 func NewGraph() *Graph {
 	new := &Graph{}
@@ -28,8 +24,8 @@ func NewGraph() *Graph {
 	return new
 }
 
-//NewGraph creates a new graph populated with numVertices vertices
-func NewGraph(numVertices int) *Graph {
+//NewGraphN creates a new graph populated with numVertices vertices
+func NewGraphN(numVertices int) *Graph {
 	graph := NewGraph()
 	for i := 0; i < numVertices; i++ {
 		graph.AddVertex(i)
