@@ -9,11 +9,11 @@ Benchmark comparisons to the other two top golang dijkstra implementations;
 ![Wow so fast](/speed.png?raw=true "Benchmarks")
 ![Wow the multiply!](/mult.png?raw=true "Multiply")
 
-Oddly the speed benefit seems to diminish as the nodes get higher, this could be
+Oddly the speed benefit seems to diminish as the node count increases, this could be
  due to the fact that the linked list places the to be visited node in the correct
  ordered position. This means worst case O(n). The generated test cases are worst
  case, with every need having access to every other node (weighting on the distances
-   to ensure that the shortest path is through lots of nodes). This garuntees
+   to ensure that the shortest path is through lots of nodes). This guarantees
   worst case scenario for my implementation, but maybe not for the others.
 
 ## Documentation
@@ -23,7 +23,7 @@ Oddly the speed benefit seems to diminish as the nodes get higher, this could be
 ### Generate a graph
 #### Importing from file
 
-The package can import dijkstra files in the format;
+The package can import dijkstra files in the format:
 ```
 0 1,1 2,1
 1 0,1 2,2
@@ -35,7 +35,7 @@ using;
 graph, err := dijkstra.Import("path/to/file")
 ```
 
-ie; node then each arc and it's weight. The default is to use nodes with numbers starting from 0, but the package will map string appropriatly.
+i.e. node then each arc and it's weight. The default is to use nodes with numbers starting from 0, but the package will map string appropriately.
 
 #### Creating a graph
 
