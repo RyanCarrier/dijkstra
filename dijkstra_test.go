@@ -31,6 +31,25 @@ func TestCorrect(t *testing.T) {
 
 var benchNames = []string{"github.com/RyanCarrier", "github.com/ProfessorQ", "github.com/albertorestifo"}
 
+func BenchmarkSetup(b *testing.B) {
+	nodeIterations := 6
+	nodes := 1
+	for j := 0; j < nodeIterations; j++ {
+		nodes *= 4
+		b.Run("setup/"+strconv.Itoa(nodes)+"Nodes", func(b *testing.B) {
+			filename := "testdata/bench/" + strconv.Itoa(nodes) + ".txt"
+			if _, err := os.Stat(filename); err != nil {
+				Generate(nodes, filename)
+			}
+			g, _ := Import(filename)
+			b.ResetTimer()
+			for i := 0; i < b.N; i++ {
+				g.setup(true, 0)
+			}
+		})
+	}
+}
+
 func BenchmarkAll(b *testing.B) {
 	nodeIterations := 6
 	for i, n := range benchNames {
