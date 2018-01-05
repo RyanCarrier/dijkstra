@@ -1,4 +1,4 @@
-package dijkstraMax
+package max
 
 //Set is a set of in and out tax's
 type Set struct {
@@ -65,4 +65,10 @@ func (v *Vertex) GetArc(Destination int) (distance int64, ok bool) {
 	//idk why but doesn't work on one line?
 	distance, ok = v.arcs[Destination]
 	return
+}
+
+//Evaluate evalutates the value in to if converted from this node (v) to the
+// next node (to)
+func (v *Vertex) Evaluate(to Vertex, conversion int64) int64 {
+	return ((((((v.best * (multiplier - v.Multiplier.Out) / multiplier) - v.Addition.Out) * conversion) / multiplier) * to.Multiplier.In) / multiplier) - to.Addition.In
 }
