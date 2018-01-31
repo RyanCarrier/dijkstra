@@ -47,9 +47,9 @@ func (l *linkedList) PushOrdered(v interface{}) {
 // Init initializes or clears list l.
 func (l *linkedList) PopOrdered() interface{} {
 	if l.short {
-		return l.popFront()
+		return l.popBack()
 	}
-	return l.popBack()
+	return l.popFront()
 }
 
 // Init initializes or clears list l.
