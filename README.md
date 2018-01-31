@@ -9,12 +9,9 @@ Benchmark comparisons to the other two top golang dijkstra implementations;
 ![Wow so fast](/speed.png?raw=true "Benchmarks")
 ![Wow the multiply!](/mult.png?raw=true "Multiply")
 
-Oddly the speed benefit seems to diminish as the node count increases, this could be
- due to the fact that the linked list places the to be visited node in the correct
- ordered position. This means worst case O(n). The generated test cases are worst
- case, with every need having access to every other node (weighting on the distances
-   to ensure that the shortest path is through lots of nodes). This guarantees
-  worst case scenario for my implementation, but maybe not for the others.
+Speed benefit use to diminish due to linked lists sucking at high nodes in queue for checking. Since adding a priority queue (or linked list for small nodes), the benefits get even stronger.
+
+Priority queues are used for nodes over 800, to gain this big increase in spead (about x15), it means there is some added overhead to initializing. Oddly this shouldn't be an issue at 16-256 nodes, but both still seem to take a significant performance hit. Could be due to type assertion (to allow container/heap to be used with the priority queue).
 
 ## Documentation
 [godoc](https://godoc.org/github.com/RyanCarrier/dijkstra)
