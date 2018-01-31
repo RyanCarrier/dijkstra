@@ -1,12 +1,9 @@
 package dijkstra
 
-import (
-	"log"
-	"math/rand"
-)
+import "math/rand"
 
 //Generate generates file with the amount of nodes specified
-func Generate(nodes int, filename string) {
+func Generate(nodes int) Graph {
 	//	fmt.Println("Generating file "+filename+" with nodes ", nodes)
 	graph := Graph{}
 	var i int
@@ -20,8 +17,5 @@ func Generate(nodes int, filename string) {
 		}
 		graph.AddVerticies(*v)
 	}
-	err := graph.ExportToFile(filename)
-	if err != nil {
-		log.Fatal(err)
-	}
+	return graph
 }

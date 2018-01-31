@@ -23,7 +23,6 @@ func Import(filename string) (g Graph, err error) {
 		return
 	}
 	g.mapping = map[string]int{}
-	g.visiting = newLinkedList()
 
 	input := strings.TrimSpace(string(got))
 	for _, line := range strings.Split(input, "\n") {

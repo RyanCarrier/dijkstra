@@ -18,26 +18,53 @@ type element struct {
 	list *linkedList
 
 	// The value stored with this element.
-	Value *Vertex
+	Value interface{}
 }
 
 // linkedList represents a doubly linked list.
 // The zero value for linkedList is an empty list ready to use.
 type linkedList struct {
-	root element // sentinel list element, only &root, root.prev, and root.next are used
-	len  int     // current list length excluding (this) sentinel element
+	root  element // sentinel list element, only &root, root.prev, and root.next are used
+	len   int     // current list length excluding (this) sentinel element
+	short bool
 }
 
 // Init initializes or clears list l.
-func (l *linkedList) init() *linkedList {
+func linkedListNewShort() dijkstraList {
+	return dijkstraList(new(linkedList).init(true))
+}
+
+// Init initializes or clears list l.
+func linkedListNewLong() dijkstraList {
+	return dijkstraList(new(linkedList).init(false))
+}
+
+// Init initializes or clears list l.
+func (l *linkedList) PushOrdered(v interface{}) {
+	l.pushOrdered(v)
+}
+
+// Init initializes or clears list l.
+func (l *linkedList) PopOrdered() interface{} {
+	if l.short {
+		return l.popFront()
+	}
+	return l.popBack()
+}
+
+// Init initializes or clears list l.
+func (l *linkedList) Len() int {
+	return l.len
+}
+
+// Init initializes or clears list l.
+func (l *linkedList) init(short bool) *linkedList {
 	l.root.next = &l.root
 	l.root.prev = &l.root
 	l.len = 0
+	l.short = short
 	return l
 }
-
-// newlinkedList returns an initialized list.
-func newLinkedList() *linkedList { return new(linkedList).init() }
 
 // front returns the first element of list l or nil.
 func (l *linkedList) front() *element {
@@ -48,7 +75,7 @@ func (l *linkedList) front() *element {
 }
 
 //popFront pops the Vertex off the front of the list
-func (l *linkedList) popFront() *Vertex {
+func (l *linkedList) popFront() interface{} {
 	e := l.front()
 	if e.list == l {
 		// if e.list == l, l must have been initialized when e was inserted
@@ -59,7 +86,7 @@ func (l *linkedList) popFront() *Vertex {
 }
 
 //popFront pops the Vertex off the front of the list
-func (l *linkedList) popBack() *Vertex {
+func (l *linkedList) popBack() interface{} {
 	e := l.back()
 	if e.list == l {
 		// if e.list == l, l must have been initialized when e was inserted
@@ -80,26 +107,26 @@ func (l *linkedList) back() *element {
 // lazyInit lazily initializes a zero linkedList value.
 func (l *linkedList) lazyinit() {
 	if l.root.next == nil {
-		l.init()
+		l.init(l.short)
 	}
 }
 
 //pushOrdered pushes the value into the linked list in the correct position
 // (ascending)
-func (l *linkedList) pushOrdered(v *Vertex) *element {
+func (l *linkedList) pushOrdered(v interface{}) *element {
 	l.lazyinit()
 	if l.len == 0 {
 		return l.pushFront(v)
 	}
 	back := l.back()
-	if back.Value.distance < v.distance {
+	if back.Value.(*Vertex).distance < v.(*Vertex).distance {
 		return l.insertValue(v, l.root.prev)
 	}
 	current := l.front()
-	for current.Value.distance < v.distance && current.Value.ID != v.ID { //don't need to chack if current=back cause back already checked
+	for current.Value.(*Vertex).distance < v.(*Vertex).distance && current.Value.(*Vertex).ID != v.(*Vertex).ID { //don't need to chack if current=back cause back already checked
 		current = current.next
 	}
-	if current.Value.ID == v.ID {
+	if current.Value.(*Vertex).ID == v.(*Vertex).ID {
 		return current
 	}
 	return l.insertValue(v, current.prev)
@@ -118,7 +145,7 @@ func (l *linkedList) insert(e, at *element) *element {
 }
 
 // insertValue is a convenience wrapper for insert(&element{Value: v}, at).
-func (l *linkedList) insertValue(v *Vertex, at *element) *element {
+func (l *linkedList) insertValue(v interface{}, at *element) *element {
 	return l.insert(&element{Value: v}, at)
 }
 
@@ -134,7 +161,7 @@ func (l *linkedList) remove(e *element) *element {
 }
 
 // pushFront inserts a new element e with value v at the front of list l and returns e.
-func (l *linkedList) pushFront(v *Vertex) *element {
+func (l *linkedList) pushFront(v interface{}) *element {
 	l.lazyinit()
 	return l.insertValue(v, &l.root)
 }

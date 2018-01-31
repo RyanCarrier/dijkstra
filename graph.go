@@ -11,7 +11,7 @@ type Graph struct {
 	visitedDest bool
 	//slice of all verticies available
 	Verticies       []Vertex
-	visiting        *linkedList
+	visiting        dijkstraList
 	mapping         map[string]int
 	usingMap        bool
 	highestMapIndex int

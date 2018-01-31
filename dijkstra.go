@@ -19,9 +19,16 @@ func (g *Graph) finally(src, dest int) (BestPath, error) {
 	return g.bestPath(src, dest), nil
 }
 
-func (g *Graph) setup(shortest bool, src int) {
+func (g *Graph) setup(shortest bool, src int, list int) {
+	//-1 auto list
 	//Get a new list regardless
-	g.visiting = newLinkedList()
+	if list >= 0 {
+		g.forceList(list)
+	} else if shortest {
+		g.forceList(-1)
+	} else {
+		g.forceList(-2)
+	}
 	//Reset state
 	g.visitedDest = false
 	//Reset the best current value (worst so it gets overwritten)
@@ -37,7 +44,46 @@ func (g *Graph) setup(shortest bool, src int) {
 	//Set the distance of initial vertex 0
 	g.Verticies[src].distance = 0
 	//Add the source vertex to the list
-	g.visiting.pushFront(&g.Verticies[src])
+	g.visiting.PushOrdered(&g.Verticies[src])
+}
+
+func (g *Graph) forceList(i int) {
+	//-2 long auto
+	//-1 short auto
+	//0 short pq
+	//1 long pq
+	//2 short ll
+	//3 long ll
+	switch i {
+	case -2:
+		if len(g.Verticies) < 800 {
+			g.forceList(2)
+		} else {
+			g.forceList(0)
+		}
+		break
+	case -1:
+		if len(g.Verticies) < 800 {
+			g.forceList(3)
+		} else {
+			g.forceList(1)
+		}
+		break
+	case 0:
+		g.visiting = priorityQueueNewShort()
+		break
+	case 1:
+		g.visiting = priorityQueueNewLong()
+		break
+	case 2:
+		g.visiting = linkedListNewShort()
+		break
+	case 3:
+		g.visiting = linkedListNewLong()
+		break
+	default:
+		panic(i)
+	}
 }
 
 func (g *Graph) bestPath(src, dest int) BestPath {
@@ -54,15 +100,27 @@ func (g *Graph) bestPath(src, dest int) BestPath {
 
 func (g *Graph) evaluate(src, dest int, shortest bool) (BestPath, error) {
 	//Setup graph
-	g.setup(shortest, src)
+	g.setup(shortest, src, -1)
+	return g.postSetupEvaluate(src, dest, shortest)
+}
+
+func (g *Graph) postSetupEvaluate(src, dest int, shortest bool) (BestPath, error) {
 	var current *Vertex
-	for g.visiting.len > 0 {
+	oldCurrent := -1
+	for g.visiting.Len() > 0 {
 		//Visit the current lowest distanced Vertex
-		if shortest {
-			current = g.visiting.popFront()
-		} else {
-			current = g.visiting.popBack()
+		//TODO WTF
+		current = g.visiting.PopOrdered().(*Vertex)
+		if oldCurrent == current.ID {
+			continue
 		}
+		oldCurrent = current.ID
+		/*
+			if shortest {
+				current = heap.Pop(g.visiting).(*Vertex)
+			} else {
+				current = heap.Pop(g.visiting).(*Vertex)
+			}*/
 		//If we have hit the destination set the flag, cheaper than checking it's
 		// distance change at the end
 		if current.ID == dest {
@@ -77,7 +135,8 @@ func (g *Graph) evaluate(src, dest int, shortest bool) (BestPath, error) {
 			//If the arc has better access, than the current best, update the Vertex being touched
 			if (shortest && current.distance+dist < g.Verticies[v].distance) ||
 				(!shortest && current.distance+dist > g.Verticies[v].distance) {
-				if g.Verticies[v].bestVertex == current.ID && g.Verticies[v].ID != dest {
+				//if g.Verticies[v].bestVertex == current.ID && g.Verticies[v].ID != dest {
+				if current.bestVertex == v && g.Verticies[v].ID != dest {
 					//also only do this if we aren't checkout out the best distance again
 					//This seems familiar 8^)
 					return BestPath{}, newErrLoop(current.ID, v)
@@ -91,7 +150,7 @@ func (g *Graph) evaluate(src, dest int, shortest bool) (BestPath, error) {
 				}
 				//Push this updated Vertex into the list to be evaluated, pushes in
 				// sorted form
-				g.visiting.pushOrdered(&g.Verticies[v])
+				g.visiting.PushOrdered(&g.Verticies[v])
 			}
 		}
 	}
