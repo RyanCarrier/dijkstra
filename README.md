@@ -1,4 +1,4 @@
-# dijkstra
+%# dijkstra
 Golangs fastest Dijkstra's shortest (and longest) path calculator, requires go 1.6 or above (for benchmarking).
 
 ## Need for speed
@@ -11,7 +11,7 @@ Benchmark comparisons to the other two top golang dijkstra implementations;
 
 Speed benefit use to diminish due to linked lists sucking at high nodes in queue for checking. Since adding a priority queue (or linked list for small nodes), the benefits get even stronger.
 
-Priority queues are used for nodes over 800, to gain this big increase in spead (about x15), it means there is some added overhead to initializing. Oddly this shouldn't be an issue at 16-256 nodes, but both still seem to take a significant performance hit. Could be due to type assertion (to allow container/heap to be used with the priority queue).
+Priority queues are used for nodes over 800, to gain this big increase in spead (about x15), it means there is some added overhead to initializing. Oddly this shouldn't be an issue at 16-256 nodes, but both still seem to take a significant performance hit.
 
 ## Documentation
 [godoc](https://godoc.org/github.com/RyanCarrier/dijkstra)
