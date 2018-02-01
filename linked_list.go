@@ -18,7 +18,7 @@ type element struct {
 	list *linkedList
 
 	// The value stored with this element.
-	Value interface{}
+	Value *Vertex
 }
 
 // linkedList represents a doubly linked list.
@@ -40,12 +40,12 @@ func linkedListNewLong() dijkstraList {
 }
 
 // Init initializes or clears list l.
-func (l *linkedList) PushOrdered(v interface{}) {
+func (l *linkedList) PushOrdered(v *Vertex) {
 	l.pushOrdered(v)
 }
 
 // Init initializes or clears list l.
-func (l *linkedList) PopOrdered() interface{} {
+func (l *linkedList) PopOrdered() *Vertex {
 	if l.short {
 		return l.popBack()
 	}
@@ -75,7 +75,7 @@ func (l *linkedList) front() *element {
 }
 
 //popFront pops the Vertex off the front of the list
-func (l *linkedList) popFront() interface{} {
+func (l *linkedList) popFront() *Vertex {
 	e := l.front()
 	if e.list == l {
 		// if e.list == l, l must have been initialized when e was inserted
@@ -86,7 +86,7 @@ func (l *linkedList) popFront() interface{} {
 }
 
 //popFront pops the Vertex off the front of the list
-func (l *linkedList) popBack() interface{} {
+func (l *linkedList) popBack() *Vertex {
 	e := l.back()
 	if e.list == l {
 		// if e.list == l, l must have been initialized when e was inserted
@@ -113,20 +113,20 @@ func (l *linkedList) lazyinit() {
 
 //pushOrdered pushes the value into the linked list in the correct position
 // (ascending)
-func (l *linkedList) pushOrdered(v interface{}) *element {
+func (l *linkedList) pushOrdered(v *Vertex) *element {
 	l.lazyinit()
 	if l.len == 0 {
 		return l.pushFront(v)
 	}
 	back := l.back()
-	if back.Value.(*Vertex).distance < v.(*Vertex).distance {
+	if back.Value.distance < v.distance {
 		return l.insertValue(v, l.root.prev)
 	}
 	current := l.front()
-	for current.Value.(*Vertex).distance < v.(*Vertex).distance && current.Value.(*Vertex).ID != v.(*Vertex).ID { //don't need to chack if current=back cause back already checked
+	for current.Value.distance < v.distance && current.Value.ID != v.ID { //don't need to chack if current=back cause back already checked
 		current = current.next
 	}
-	if current.Value.(*Vertex).ID == v.(*Vertex).ID {
+	if current.Value.ID == v.ID {
 		return current
 	}
 	return l.insertValue(v, current.prev)
@@ -145,7 +145,7 @@ func (l *linkedList) insert(e, at *element) *element {
 }
 
 // insertValue is a convenience wrapper for insert(&element{Value: v}, at).
-func (l *linkedList) insertValue(v interface{}, at *element) *element {
+func (l *linkedList) insertValue(v *Vertex, at *element) *element {
 	return l.insert(&element{Value: v}, at)
 }
 
@@ -161,7 +161,7 @@ func (l *linkedList) remove(e *element) *element {
 }
 
 // pushFront inserts a new element e with value v at the front of list l and returns e.
-func (l *linkedList) pushFront(v interface{}) *element {
+func (l *linkedList) pushFront(v *Vertex) *element {
 	l.lazyinit()
 	return l.insertValue(v, &l.root)
 }

@@ -110,7 +110,7 @@ func (g *Graph) postSetupEvaluate(src, dest int, shortest bool) (BestPath, error
 	for g.visiting.Len() > 0 {
 		//Visit the current lowest distanced Vertex
 		//TODO WTF
-		current = g.visiting.PopOrdered().(*Vertex)
+		current = g.visiting.PopOrdered()
 		if oldCurrent == current.ID {
 			continue
 		}
