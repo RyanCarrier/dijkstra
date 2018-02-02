@@ -25,3 +25,4 @@ _testmain.go
 temp*
 /testdata/bench/*.txt
 /testdata/bench
+.vscode

@@ -121,20 +121,21 @@ func getAGraph() Graph {
 			Vertex{0, 0, 0, map[int]int64{
 				1: 4,
 				2: 2},
+				nil, nil, false,
 			},
 			Vertex{1, 0, 0, map[int]int64{
 				3: 2,
 				2: 3,
-				4: 3},
+				4: 3}, nil, nil, false,
 			},
 			Vertex{2, 0, 0, map[int]int64{
 				1: 1,
 				3: 4,
-				4: 5},
+				4: 5}, nil, nil, false,
 			},
-			Vertex{3, 0, 0, map[int]int64{}},
+			Vertex{3, 0, 0, map[int]int64{}, nil, nil, false},
 			Vertex{4, 0, 0, map[int]int64{
-				3: 1},
+				3: 1}, nil, nil, false,
 			},
 		},
 		priorityQueueNewShort(), //newLinkedList(),
@@ -150,25 +151,25 @@ func getBGraph() Graph {
 		[]Vertex{
 			Vertex{0, 0, 0, map[int]int64{
 				1: 4,
-				2: 2},
+				2: 2}, nil, nil, false,
 			},
 			Vertex{1, 0, 0, map[int]int64{
 				3: 2,
 				2: 3,
-				4: 3},
+				4: 3}, nil, nil, false,
 			},
 			Vertex{2, 0, 0, map[int]int64{
 				1: 1,
 				3: 4,
-				4: 5},
+				4: 5}, nil, nil, false,
 			},
 			Vertex{3, 0, 0, map[int]int64{
-				5: 10}},
+				5: 10}, nil, nil, false},
 			Vertex{4, 0, 0, map[int]int64{
-				3: 1},
+				3: 1}, nil, nil, false,
 			},
 			Vertex{5, 0, 0, map[int]int64{
-				3: 10},
+				3: 10}, nil, nil, false,
 			},
 		},
 		priorityQueueNewShort(), //newLinkedList(),
@@ -190,25 +191,25 @@ func getCGraph() Graph {
 		[]Vertex{
 			Vertex{0, 0, 0, map[int]int64{
 				1: -4,
-				2: 2},
+				2: 2}, nil, nil, false,
 			},
 			Vertex{1, 0, 0, map[int]int64{
 				3: 2,
 				2: -3,
-				4: 3},
+				4: 3}, nil, nil, false,
 			},
 			Vertex{2, 0, 0, map[int]int64{
 				1: 1,
 				3: 4,
-				4: 5},
+				4: 5}, nil, nil, false,
 			},
 			Vertex{3, 0, 0, map[int]int64{
-				5: -10}},
+				5: -10}, nil, nil, false},
 			Vertex{4, 0, 0, map[int]int64{
-				3: 1},
+				3: 1}, nil, nil, false,
 			},
 			Vertex{5, 0, 0, map[int]int64{
-				3: -10},
+				3: -10}, nil, nil, false,
 			},
 		},
 		priorityQueueNewShort(), //newLinkedList(),
@@ -223,14 +224,14 @@ func getGGraph() (Graph, map[string]int) {
 			0, false,
 			[]Vertex{
 				Vertex{0, 0, 0, map[int]int64{
-					1: 2},
+					1: 2}, nil, nil, false,
 				},
 				Vertex{1, 0, 0, map[int]int64{
-					2: 5},
+					2: 5}, nil, nil, false,
 				},
 				Vertex{2, 0, 0, map[int]int64{
 					0: 1,
-					1: 1},
+					1: 1}, nil, nil, false,
 				},
 			},
 			priorityQueueNewShort(), //newLinkedList(),
@@ -253,18 +254,18 @@ func getIGraph() Graph {
 		0, false,
 		[]Vertex{
 			Vertex{0, 0, 0, map[int]int64{
-				1: 2},
+				1: 2}, nil, nil, false,
 			},
 			Vertex{1, 0, 0, map[int]int64{
-				2: 3},
+				2: 3}, nil, nil, false,
 			},
 			Vertex{2, 0, 0, map[int]int64{
-				3: 4},
+				3: 4}, nil, nil, false,
 			},
 			Vertex{3, 0, 0, map[int]int64{
-				2: 5},
+				2: 5}, nil, nil, false,
 			},
-			Vertex{4, 0, 0, map[int]int64{}},
+			Vertex{4, 0, 0, map[int]int64{}, nil, nil, false},
 		},
 		priorityQueueNewShort(), //newLinkedList(),
 		map[string]int{},

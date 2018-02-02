@@ -25,8 +25,8 @@ func TestLoop(t *testing.T) {
 }
 
 func TestCorrect(t *testing.T) {
-	testSolution(t, getBSol(), nil, "testdata/B.txt", 0, 5, true, -1)
 	testSolution(t, getKSolLong(), nil, "testdata/K.txt", 0, 4, false, -1)
+	testSolution(t, getBSol(), nil, "testdata/B.txt", 0, 5, true, -1)
 	testSolution(t, getKSolShort(), nil, "testdata/K.txt", 0, 4, true, -1)
 }
 

@@ -9,7 +9,25 @@ type Vertex struct {
 	distance   int64
 	bestVertex int
 	//A set of all weights to the nodes in the map
-	arcs map[int]int64
+	arcs       map[int]int64
+	next, prev *Vertex
+	inList     bool
+}
+
+func (v *Vertex) compare(z *Vertex) int {
+	//-1 v < z
+	//0 v==z
+	//1 v>z
+	if v.distance == z.distance {
+		if v.ID == z.ID {
+			return 0
+		} else if v.ID < z.ID {
+			return -1
+		}
+	} else if v.distance < z.distance {
+		return -1
+	}
+	return 1
 }
 
 //NewVertex creates a new vertex
