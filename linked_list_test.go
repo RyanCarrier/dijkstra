@@ -25,6 +25,7 @@ func TestEmptyList(t *testing.T) {
 func TestAdding(t *testing.T) {
 	verticies := getVertexs()
 	short := false
+	var popped *Vertex
 	for i := 0; i < 2; i++ {
 		ll := new(linkedList).init(short)
 		checkNil(t, ll)
@@ -41,59 +42,12 @@ func TestAdding(t *testing.T) {
 		if ll.PopOrdered() != verticies[i+1] {
 			t.Error("Wrong pop")
 		}
-		if ll.PopOrdered() != verticies[(((i+1)%2)*2)] {
+		popped = ll.PopOrdered()
+		if (short && popped != verticies[0]) || (!short && popped != verticies[2]) {
 			t.Error("Wrong pop")
 		}
 		checkNil(t, ll)
 		short = !short
-	}
-}
-
-func TestDig(t *testing.T) {
-	verticies := getVertexs()
-	short := true
-	ll := new(linkedList).init(short)
-	checkRootRoot(t, ll)
-	checkNil(t, ll)
-	ll.PushOrdered(verticies[0])
-	if ll.root.next != verticies[0] || ll.root.prev != verticies[0] {
-		t.Error("Root next or prev incorrect")
-	}
-	ll.PopOrdered()
-	checkRootRoot(t, ll)
-	ll.PushOrdered(verticies[0])
-	checkRootNextPrev(t, ll, verticies[0], verticies[0])
-	ll.PushOrdered(verticies[1])
-	checkRootNextPrev(t, ll, verticies[0], verticies[1])
-	ll.PushOrdered(verticies[2])
-	checkRootNextPrev(t, ll, verticies[0], verticies[2])
-	if ll.root.next.next != ll.root.prev.prev || ll.root.next.next != verticies[1] {
-		t.Error("Root directions wrong")
-	}
-	ll.PopOrdered()
-	checkRootNextPrev(t, ll, verticies[0], verticies[1])
-	ll.PushOrdered(verticies[1])
-	checkRootNextPrev(t, ll, verticies[0], verticies[1])
-	if ll.len != 2 {
-		ll.print()
-		ll.reversePrint()
-		t.Errorf("len should be stay on collision")
-
-	}
-}
-
-func checkRootNextPrev(t *testing.T, ll *linkedList, n, p *Vertex) {
-	if ll.root.next != n {
-		t.Errorf("root.next is # should be #\n[%+v]\n[%+v]", ll.root.next, n)
-	}
-	if ll.root.prev != p {
-		t.Errorf("root.prev is # should be #\n[%+v]\n[%+v]", ll.root.prev, p)
-	}
-}
-
-func checkRootRoot(t *testing.T, ll *linkedList) {
-	if ll.root.next != ll.root || ll.root.prev != ll.root {
-		t.Error("Root next and prev should be root")
 	}
 }
 
