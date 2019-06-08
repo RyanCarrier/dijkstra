@@ -3,18 +3,18 @@ package dijkstra
 import "math"
 
 //Shortest calculates the shortest path from src to dest
-func (g *Graph) Shortest(src, dest int) (BestPath, error) {
+func (g *Graph) Shortest(src, dest int) (BestPaths, error) {
 	return g.evaluate(src, dest, true)
 }
 
 //Longest calculates the longest path from src to dest
-func (g *Graph) Longest(src, dest int) (BestPath, error) {
+func (g *Graph) Longest(src, dest int) (BestPaths, error) {
 	return g.evaluate(src, dest, false)
 }
 
-func (g *Graph) finally(src, dest int) (BestPath, error) {
+func (g *Graph) finally(src, dest int) (BestPaths, error) {
 	if !g.visitedDest {
-		return BestPath{}, ErrNoPath
+		return BestPaths{}, ErrNoPath
 	}
 	return g.bestPath(src, dest), nil
 }
@@ -98,13 +98,13 @@ func (g *Graph) bestPath(src, dest int) BestPath {
 	return BestPath{g.Verticies[dest].distance, path}
 }
 
-func (g *Graph) evaluate(src, dest int, shortest bool) (BestPath, error) {
+func (g *Graph) evaluate(src, dest int, shortest bool) (BestPaths, error) {
 	//Setup graph
 	g.setup(shortest, src, -1)
 	return g.postSetupEvaluate(src, dest, shortest)
 }
 
-func (g *Graph) postSetupEvaluate(src, dest int, shortest bool) (BestPath, error) {
+func (g *Graph) postSetupEvaluate(src, dest int, shortest bool) (BestPaths, error) {
 	var current *Vertex
 	oldCurrent := -1
 	for g.visiting.Len() > 0 {
@@ -139,7 +139,7 @@ func (g *Graph) postSetupEvaluate(src, dest int, shortest bool) (BestPath, error
 				if current.bestVertex == v && g.Verticies[v].ID != dest {
 					//also only do this if we aren't checkout out the best distance again
 					//This seems familiar 8^)
-					return BestPath{}, newErrLoop(current.ID, v)
+					return BestPaths{}, newErrLoop(current.ID, v)
 				}
 				g.Verticies[v].distance = current.distance + dist
 				g.Verticies[v].bestVertex = current.ID
@@ -162,3 +162,6 @@ type BestPath struct {
 	Distance int64
 	Path     []int
 }
+
+//BestPaths contains the list of best solutions
+type BestPaths []BestPath
