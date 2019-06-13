@@ -1,22 +1,17 @@
 package dijkstra
 
-import "math"
+import (
+	"math"
+)
 
 //Shortest calculates the shortest path from src to dest
-func (g *Graph) Shortest(src, dest int) (BestPaths, error) {
+func (g *Graph) Shortest(src, dest int) (BestPath, error) {
 	return g.evaluate(src, dest, true)
 }
 
 //Longest calculates the longest path from src to dest
-func (g *Graph) Longest(src, dest int) (BestPaths, error) {
+func (g *Graph) Longest(src, dest int) (BestPath, error) {
 	return g.evaluate(src, dest, false)
-}
-
-func (g *Graph) finally(src, dest int) (BestPaths, error) {
-	if !g.visitedDest {
-		return BestPaths{}, ErrNoPath
-	}
-	return g.bestPath(src, dest), nil
 }
 
 func (g *Graph) setup(shortest bool, src int, list int) {
@@ -98,13 +93,13 @@ func (g *Graph) bestPath(src, dest int) BestPath {
 	return BestPath{g.Verticies[dest].distance, path}
 }
 
-func (g *Graph) evaluate(src, dest int, shortest bool) (BestPaths, error) {
+func (g *Graph) evaluate(src, dest int, shortest bool) (BestPath, error) {
 	//Setup graph
 	g.setup(shortest, src, -1)
 	return g.postSetupEvaluate(src, dest, shortest)
 }
 
-func (g *Graph) postSetupEvaluate(src, dest int, shortest bool) (BestPaths, error) {
+func (g *Graph) postSetupEvaluate(src, dest int, shortest bool) (BestPath, error) {
 	var current *Vertex
 	oldCurrent := -1
 	for g.visiting.Len() > 0 {
@@ -139,7 +134,7 @@ func (g *Graph) postSetupEvaluate(src, dest int, shortest bool) (BestPaths, erro
 				if current.bestVertex == v && g.Verticies[v].ID != dest {
 					//also only do this if we aren't checkout out the best distance again
 					//This seems familiar 8^)
-					return BestPaths{}, newErrLoop(current.ID, v)
+					return BestPath{}, newErrLoop(current.ID, v)
 				}
 				g.Verticies[v].distance = current.distance + dist
 				g.Verticies[v].bestVertex = current.ID
@@ -155,6 +150,12 @@ func (g *Graph) postSetupEvaluate(src, dest int, shortest bool) (BestPaths, erro
 		}
 	}
 	return g.finally(src, dest)
+}
+func (g *Graph) finally(src, dest int) (BestPath, error) {
+	if !g.visitedDest {
+		return BestPath{}, ErrNoPath
+	}
+	return g.bestPath(src, dest), nil
 }
 
 //BestPath contains the solution of the most optimal path
