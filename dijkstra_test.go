@@ -1,8 +1,17 @@
 package dijkstra
 
 import (
+	"log"
+	"os"
 	"reflect"
+	"strconv"
 	"testing"
+
+	ar "github.com/albertorestifo/dijkstra"
+
+	pq "github.com/RyanCarrier/dijkstra-1"
+	mm "github.com/mattomatic/dijkstra/dijkstra"
+	mmg "github.com/mattomatic/dijkstra/graph"
 )
 
 //pq "github.com/Professorq/dijkstra"
@@ -42,7 +51,7 @@ func TestCorrectAutoLargeList(t *testing.T) {
 	testErrors(t, nil, err, "manual test")
 }
 
-var benchNames = []string{"github.com/RyanCarrier", "github.com/ProfessorQ", "github.com/albertorestifo"}
+var benchNames = []string{"github.com/RyanCarrier-ALL", "github.com/RyanCarrier", "github.com/ProfessorQ", "github.com/albertorestifo"}
 var listNames = []string{"PQShort", "PQLong", "LLShort", "LLLong"}
 
 func BenchmarkSetup(b *testing.B) {
@@ -141,12 +150,14 @@ func benchmarkAlt(b *testing.B, nodes, i int) {
 	}
 	switch i {
 	case 0:
-		benchmarkRC(b, filename)
+		benchmarkRCall(b, filename)
 	case 1:
-		benchmarkProfQ(b, filename)
+		benchmarkRC(b, filename)
 	case 2:
-		benchmarkAR(b, filename)
+		benchmarkProfQ(b, filename)
 	case 3:
+		benchmarkAR(b, filename)
+	case 4:
 		benchmarkMM(b, filename)
 	default:
 		b.Error("You're retarded")
@@ -191,13 +202,13 @@ func benchmarkAR(b *testing.B, filename string) {
 	src, dest := "0", strconv.Itoa(rcdest)
 	rcgot, _ := rcg.Shortest(rcsrc, rcdest)
 	_, argot, _ := arg.Path("0", dest)
-	if rcgot[0].Distance != int64(argot) {
-		b.Fatal("Distances do not match, RC:", rcgot[0].Distance, " AR:", argot)
+	if rcgot.Distance != int64(argot) {
+		b.Fatal("Distances do not match, RC:", rcgot.Distance, " AR:", argot)
 	}
 	rcgot, _ = rcg.Shortest(rcsrc, rcdest)
 	_, argot, _ = arg.Path("0", dest)
-	if rcgot[0].Distance != int64(argot) {
-		b.Fatal("Distances do not match on iteration 2, RC:", rcgot[0].Distance, " AR:", argot)
+	if rcgot.Distance != int64(argot) {
+		b.Fatal("Distances do not match on iteration 2, RC:", rcgot.Distance, " AR:", argot)
 	}
 	//====RESET TIMER BEFORE LOOP====
 	b.ResetTimer()
@@ -237,6 +248,15 @@ func benchmarkRC(b *testing.B, filename string) {
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		graph.Shortest(src, dest)
+	}
+}
+func benchmarkRCall(b *testing.B, filename string) {
+	graph, _ := Import(filename)
+	src, dest := 0, len(graph.Verticies)-1
+	//====RESET TIMER BEFORE LOOP====
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		graph.ShortestAll(src, dest)
 	}
 }
 

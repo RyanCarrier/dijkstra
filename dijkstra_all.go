@@ -1,11 +1,11 @@
 package dijkstra
 
-//Shortest calculates the shortest path from src to dest
+//ShortestAll calculates all of the shortest paths from src to dest
 func (g *Graph) ShortestAll(src, dest int) (BestPaths, error) {
 	return g.evaluateAll(src, dest, true)
 }
 
-//Longest calculates the longest path from src to dest
+//LongestAll calculates all the longest paths from src to dest
 func (g *Graph) LongestAll(src, dest int) (BestPaths, error) {
 	return g.evaluateAll(src, dest, false)
 }
@@ -28,7 +28,7 @@ func (g *Graph) postSetupEvaluateAll(src, dest int, shortest bool) (BestPaths, e
 		}
 		oldCurrent = current.ID
 		//If the current distance is already worse than the best try another Vertex
-		if shortest && current.distance >= g.best { //} || (!shortest && current.distance <= g.best) {
+		if shortest && current.distance >= g.best {
 			continue
 		}
 		for v, dist := range current.arcs {
@@ -65,6 +65,5 @@ func (g *Graph) postSetupEvaluateAll(src, dest int, shortest bool) (BestPaths, e
 	if !g.visitedDest {
 		return BestPaths{}, ErrNoPath
 	}
-	//fmt.Println(solutions)
 	return solutions, nil
 }
