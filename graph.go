@@ -17,6 +17,24 @@ type Graph struct {
 	usingMap        bool
 	highestMapIndex int
 	sync.RWMutex
+	threads int
+}
+
+func (g *Graph) mkThread() {
+	g.Lock()
+	g.threads++
+	g.Unlock()
+}
+func (g *Graph) rmThread() {
+	g.Lock()
+	g.threads--
+	g.Unlock()
+}
+func (g *Graph) activeThreads() int {
+	g.RLock()
+	t := g.threads
+	g.RUnlock()
+	return t
 }
 
 func (g *Graph) visitingLen() int {
@@ -32,9 +50,8 @@ func (g *Graph) visitingPop() *Vertex {
 }
 func (g *Graph) visitingPush(v *Vertex) {
 	g.Lock()
-	defer g.Unlock()
 	g.visiting.PushOrdered(v)
-
+	g.Unlock()
 }
 
 //NewGraph creates a new empty graph

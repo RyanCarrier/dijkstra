@@ -142,7 +142,7 @@ func getAGraph() Graph {
 		map[string]int{},
 		false,
 		0,
-		sync.RWMutex{},
+		sync.RWMutex{}, 0,
 	}
 }
 
@@ -177,7 +177,7 @@ func getBGraph() *Graph {
 		map[string]int{},
 		false,
 		0,
-		sync.RWMutex{},
+		sync.RWMutex{}, 0,
 	}
 }
 
@@ -218,7 +218,7 @@ func getCGraph() Graph {
 		map[string]int{},
 		false,
 		0,
-		sync.RWMutex{},
+		sync.RWMutex{}, 0,
 	}
 }
 
@@ -245,7 +245,7 @@ func getGGraph() (Graph, map[string]int) {
 			},
 			false,
 			0,
-			sync.RWMutex{},
+			sync.RWMutex{}, 0,
 		}, map[string]int{
 			"A": 0,
 			"B": 1,
@@ -275,6 +275,6 @@ func getIGraph() Graph {
 		map[string]int{},
 		false,
 		0,
-		sync.RWMutex{},
+		sync.RWMutex{}, 0,
 	}
 }

@@ -2,6 +2,8 @@ package dijkstra
 
 import (
 	"math"
+	"sync"
+	"sync/atomic"
 )
 
 //Shortest calculates the shortest path from src to dest
@@ -12,6 +14,16 @@ func (g *Graph) Shortest(src, dest int) (BestPath, error) {
 //Longest calculates the longest path from src to dest
 func (g *Graph) Longest(src, dest int) (BestPath, error) {
 	return g.evaluate(src, dest, false)
+}
+
+//Shortest calculates the shortest path from src to dest
+func (g *Graph) ShortestMulti(src, dest, maxThreads int) (BestPath, error) {
+	return g.evaluateMulti(src, dest, maxThreads, true)
+}
+
+//Longest calculates the longest path from src to dest
+func (g *Graph) LongestMulti(src, dest, maxThreads int) (BestPath, error) {
+	return g.evaluateMulti(src, dest, maxThreads, false)
 }
 
 func (g *Graph) setup(shortest bool, src int, list int) {
@@ -99,53 +111,85 @@ func (g *Graph) evaluate(src, dest int, shortest bool) (BestPath, error) {
 	return g.postSetupEvaluate(src, dest, shortest)
 }
 
-func (g *Graph) postSetupEvaluate(src, dest int, shortest bool) (BestPath, error) {
+func (g *Graph) evaluateMulti(src, dest, maxthreads int, shortest bool) (BestPath, error) {
+	//Setup graph
+	g.setup(shortest, src, -1)
+	return g.postSetupEvaluateMulti(src, dest, maxthreads, shortest)
+}
+
+type threads struct {
+	threads    int32
+	maxThreads int
+	sync.RWMutex
+}
+
+func (t *threads) currentThreads() int {
+	return int(atomic.LoadInt32(&t.threads))
+}
+
+func (t *threads) rmThread() {
+	atomic.AddInt32(&t.threads, -1)
+}
+
+func (t *threads) mkThread() {
+	for t.currentThreads() >= t.maxThreads {
+	}
+	atomic.AddInt32(&t.threads, -1)
+}
+
+func (g *Graph) postSetupEvaluateMulti(src, dest, maxThreads int, shortest bool) (BestPath, error) {
 	var current *Vertex
 	oldCurrent := -1
-	maxThreads := 4
-	threads := 0
-	for g.visitingLen() > 0 || threads > 0 {
+	threadGroup := &threads{0, maxThreads, sync.RWMutex{}}
+	for g.visitingLen() > 0 || threadGroup.currentThreads() > 0 {
+		for g.visitingLen() == 0 && threadGroup.currentThreads() > 0 {
+		}
+		if g.visitingLen() == 0 {
+			break
+		}
 		//Visit the current lowest distanced Vertex
 		current = g.visiting.PopOrdered()
 		if oldCurrent == current.ID {
 			continue
 		}
 		oldCurrent = current.ID
-		for threads >= maxThreads {
-		}
-		go func() {
-			threads++
-
-			threads--
-		}()
-		g.visit(dest, shortest, current)
+		threadGroup.mkThread()
+		go g.visit(dest, shortest, current, threadGroup)
 		// if err := g.visit(dest, shortest, current); err != nil {
 		// 	return BestPath{}, err
 		// }
-		for g.visitingLen() == 0 && threads > 0 {
+		for g.visitingLen() == 0 && g.activeThreads() > 0 {
 		}
 	}
 	return g.finally(src, dest)
 }
 
-func (g *Graph) visit(dest int, shortest bool, current *Vertex) error {
+func (g *Graph) visit(dest int, shortest bool, current *Vertex, threadGroup *threads) error {
+	defer threadGroup.rmThread()
 	current.Lock()
 	defer current.Unlock()
 	//If the current distance is already worse than the best try another Vertex
-	if shortest && current.distance >= g.best {
+	g.RLock()
+	best := g.best
+	g.RUnlock()
+	if shortest && current.distance >= best {
 		return nil
 	}
 	for v, dist := range current.arcs {
 		//If the arc has better access, than the current best, update the Vertex being touched
+		g.Verticies[v].RLock()
 		if (shortest && current.distance+dist < g.Verticies[v].distance) ||
 			(!shortest && current.distance+dist > g.Verticies[v].distance) {
+			g.Verticies[v].RUnlock()
 			if current.bestVertex == v && g.Verticies[v].ID != dest {
 				//also only do this if we aren't checkout out the best distance again
 				//This seems familiar 8^)
 				return newErrLoop(current.ID, v)
 			}
+			g.Verticies[v].Lock()
 			g.Verticies[v].distance = current.distance + dist
 			g.Verticies[v].bestVertex = current.ID
+			g.Verticies[v].Unlock()
 			if v == dest {
 				//If this is the destination update best, so we can stop looking at
 				// useless Verticies
@@ -157,12 +201,54 @@ func (g *Graph) visit(dest int, shortest bool, current *Vertex) error {
 			}
 			//Push this updated Vertex into the list to be evaluated, pushes in
 			// sorted form
-			g.Lock()
-			g.visiting.PushOrdered(&g.Verticies[v])
-			g.Unlock()
+			g.visitingPush(&g.Verticies[v])
+		} else {
+			g.Verticies[v].RUnlock()
 		}
 	}
 	return nil
+}
+
+func (g *Graph) postSetupEvaluate(src, dest int, shortest bool) (BestPath, error) {
+	var current *Vertex
+	oldCurrent := -1
+	for g.visiting.Len() > 0 {
+		//Visit the current lowest distanced Vertex
+		//TODO WTF
+		current = g.visiting.PopOrdered()
+		if oldCurrent == current.ID {
+			continue
+		}
+		oldCurrent = current.ID
+		//If the current distance is already worse than the best try another Vertex
+		if shortest && current.distance >= g.best {
+			continue
+		}
+		for v, dist := range current.arcs {
+			//If the arc has better access, than the current best, update the Vertex being touched
+			if (shortest && current.distance+dist < g.Verticies[v].distance) ||
+				(!shortest && current.distance+dist > g.Verticies[v].distance) {
+				if current.bestVertex == v && g.Verticies[v].ID != dest {
+					//also only do this if we aren't checkout out the best distance again
+					//This seems familiar 8^)
+					return BestPath{}, newErrLoop(current.ID, v)
+				}
+				g.Verticies[v].distance = current.distance + dist
+				g.Verticies[v].bestVertex = current.ID
+				if v == dest {
+					//If this is the destination update best, so we can stop looking at
+					// useless Verticies
+					g.best = current.distance + dist
+					g.visitedDest = true
+					continue // Do not push if dest
+				}
+				//Push this updated Vertex into the list to be evaluated, pushes in
+				// sorted form
+				g.visiting.PushOrdered(&g.Verticies[v])
+			}
+		}
+	}
+	return g.finally(src, dest)
 }
 
 func (g *Graph) finally(src, dest int) (BestPath, error) {

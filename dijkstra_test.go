@@ -121,6 +121,7 @@ func BenchmarkAll(b *testing.B) {
 		nodes := 1
 		for j := 0; j < nodeIterations; j++ {
 			nodes *= 4
+			//Graphs will be setup here
 			b.Run(n+"/"+strconv.Itoa(nodes)+"Nodes", func(b *testing.B) {
 				benchmarkAlt(b, nodes, i)
 			})
@@ -135,19 +136,42 @@ func BenchmarkAll(b *testing.B) {
 	}
 }
 
+func BenchmarkMultithread(b *testing.B) {
+	nodeIterations := 6
+	nodes := 1
+
+	for j := 0; j < nodeIterations; j++ {
+		nodes *= 4
+		b.Run("Shortest/"+strconv.Itoa(nodes)+"Nodes", func(b *testing.B) {
+			benchmarkAlt(b, nodes, 1)
+		})
+	}
+	for threads := 1; threads < 33; threads *= 2 {
+		nodes = 1
+		for j := 0; j < nodeIterations; j++ {
+			filename := "testdata/bench/" + strconv.Itoa(nodes) + ".txt"
+			nodes *= 4
+			b.Run("ShortestMulti/("+strconv.Itoa(threads)+"threads)/"+strconv.Itoa(nodes)+"Nodes", func(b *testing.B) {
+				benchmarkRCMulti(b, filename, threads)
+			})
+		}
+	}
+	//Cleanup
+	//actually lets not
+	// nodes = 1
+	// for j := 0; j < nodeIterations; j++ {
+	// 	nodes *= 4
+	// 	os.Remove("testdata/bench/" + strconv.Itoa(nodes) + ".txt")
+	// }
+}
+
 /*
 //Mattomatics does not work.
 func BenchmarkMattomaticNodes4(b *testing.B)    { benchmarkAlt(b, 4, 3) }
 */
 func benchmarkAlt(b *testing.B, nodes, i int) {
 	filename := "testdata/bench/" + strconv.Itoa(nodes) + ".txt"
-	if _, err := os.Stat(filename); err != nil {
-		g := Generate(nodes)
-		err := g.ExportToFile(filename)
-		if err != nil {
-			log.Fatal(err)
-		}
-	}
+	benchGraphSetup(nodes, filename)
 	switch i {
 	case 0:
 		benchmarkRCall(b, filename)
@@ -161,6 +185,16 @@ func benchmarkAlt(b *testing.B, nodes, i int) {
 		benchmarkMM(b, filename)
 	default:
 		b.Error("You're retarded")
+	}
+}
+
+func benchGraphSetup(nodes int, filename string) {
+	if _, err := os.Stat(filename); err != nil {
+		g := Generate(nodes)
+		err := g.ExportToFile(filename)
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
 }
 
@@ -250,6 +284,17 @@ func benchmarkRC(b *testing.B, filename string) {
 		graph.Shortest(src, dest)
 	}
 }
+
+func benchmarkRCMulti(b *testing.B, filename string, maxThreads int) {
+	graph, _ := Import(filename)
+	src, dest := 0, len(graph.Verticies)-1
+	//====RESET TIMER BEFORE LOOP====
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		graph.ShortestMulti(src, dest, maxThreads)
+	}
+}
+
 func benchmarkRCall(b *testing.B, filename string) {
 	graph, _ := Import(filename)
 	src, dest := 0, len(graph.Verticies)-1
@@ -287,6 +332,12 @@ func setupPq(rcg Graph) map[int]pq.Vertex {
 }
 
 func testSolution(t *testing.T, best BestPath, wanterr error, filename string, from, to int, shortest bool, list int) {
+	testSolutionRegular(t, best, wanterr, filename, from, to, shortest, list)
+	testSolutionAll(t, best, wanterr, filename, from, to, shortest, list)
+	testSolutionMulti(t, best, wanterr, filename, from, to, shortest, list)
+}
+
+func testSolutionRegular(t *testing.T, best BestPath, wanterr error, filename string, from, to int, shortest bool, list int) {
 	var err error
 	var graph Graph
 	graph, err = Import(filename)
@@ -294,7 +345,6 @@ func testSolution(t *testing.T, best BestPath, wanterr error, filename string, f
 		t.Fatal(err, filename)
 	}
 	var got BestPath
-	var gotAll BestPaths
 	if list >= 0 {
 		graph.setup(shortest, from, list)
 		got, err = graph.postSetupEvaluate(from, to, shortest)
@@ -305,6 +355,15 @@ func testSolution(t *testing.T, best BestPath, wanterr error, filename string, f
 	}
 	testErrors(t, wanterr, err, filename)
 	testResults(t, got, best, shortest, filename)
+}
+func testSolutionAll(t *testing.T, best BestPath, wanterr error, filename string, from, to int, shortest bool, list int) {
+	var err error
+	var graph Graph
+	graph, err = Import(filename)
+	if err != nil {
+		t.Fatal(err, filename)
+	}
+	var gotAll BestPaths
 	if list >= 0 {
 		graph.setup(shortest, from, list)
 		gotAll, err = graph.postSetupEvaluateAll(from, to, shortest)
@@ -318,6 +377,29 @@ func testSolution(t *testing.T, best BestPath, wanterr error, filename string, f
 		gotAll = BestPaths{BestPath{}}
 	}
 	testResults(t, gotAll[0], best, shortest, filename)
+}
+
+func testSolutionMulti(t *testing.T, best BestPath, wanterr error, filename string, from, to int, shortest bool, list int) {
+	//var err error
+	var got BestPath
+	for i := 1; i < 16; i++ {
+		var graph Graph
+		graph, err := Import(filename)
+		if err != nil {
+			t.Fatal(err, filename)
+		}
+		if list >= 0 {
+			graph.setup(shortest, from, list)
+			got, _ = graph.postSetupEvaluateMulti(from, to, i, shortest)
+		} else if shortest {
+			got, _ = graph.ShortestMulti(from, to, i)
+		} else {
+			got, _ = graph.LongestMulti(from, to, i)
+		}
+		//testErrors(t, wanterr, err, filename)
+		testResults(t, got, best, shortest, filename)
+	}
+
 }
 
 func testResults(t *testing.T, got, best BestPath, shortest bool, filename string) {
