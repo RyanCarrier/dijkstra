@@ -3,7 +3,7 @@ package dijkstra
 import "math/rand"
 
 //Generate generates file with the amount of nodes specified
-func Generate(nodes int) Graph {
+func Generate(nodes int) *Graph {
 	//	fmt.Println("Generating file "+filename+" with nodes ", nodes)
 	graph := Graph{}
 	var i int
@@ -17,5 +17,5 @@ func Generate(nodes int) Graph {
 		}
 		graph.AddVerticies(*v)
 	}
-	return graph
+	return &graph
 }

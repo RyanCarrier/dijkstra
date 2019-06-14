@@ -102,43 +102,67 @@ func (g *Graph) evaluate(src, dest int, shortest bool) (BestPath, error) {
 func (g *Graph) postSetupEvaluate(src, dest int, shortest bool) (BestPath, error) {
 	var current *Vertex
 	oldCurrent := -1
-	for g.visiting.Len() > 0 {
+	maxThreads := 4
+	threads := 0
+	for g.visitingLen() > 0 || threads > 0 {
 		//Visit the current lowest distanced Vertex
-		//TODO WTF
 		current = g.visiting.PopOrdered()
 		if oldCurrent == current.ID {
 			continue
 		}
 		oldCurrent = current.ID
-		//If the current distance is already worse than the best try another Vertex
-		if shortest && current.distance >= g.best {
-			continue
+		for threads >= maxThreads {
 		}
-		for v, dist := range current.arcs {
-			//If the arc has better access, than the current best, update the Vertex being touched
-			if (shortest && current.distance+dist < g.Verticies[v].distance) ||
-				(!shortest && current.distance+dist > g.Verticies[v].distance) {
-				if current.bestVertex == v && g.Verticies[v].ID != dest {
-					//also only do this if we aren't checkout out the best distance again
-					//This seems familiar 8^)
-					return BestPath{}, newErrLoop(current.ID, v)
-				}
-				g.Verticies[v].distance = current.distance + dist
-				g.Verticies[v].bestVertex = current.ID
-				if v == dest {
-					//If this is the destination update best, so we can stop looking at
-					// useless Verticies
-					g.best = current.distance + dist
-					g.visitedDest = true
-					continue // Do not push if dest
-				}
-				//Push this updated Vertex into the list to be evaluated, pushes in
-				// sorted form
-				g.visiting.PushOrdered(&g.Verticies[v])
-			}
+		go func() {
+			threads++
+
+			threads--
+		}()
+		g.visit(dest, shortest, current)
+		// if err := g.visit(dest, shortest, current); err != nil {
+		// 	return BestPath{}, err
+		// }
+		for g.visitingLen() == 0 && threads > 0 {
 		}
 	}
 	return g.finally(src, dest)
+}
+
+func (g *Graph) visit(dest int, shortest bool, current *Vertex) error {
+	current.Lock()
+	defer current.Unlock()
+	//If the current distance is already worse than the best try another Vertex
+	if shortest && current.distance >= g.best {
+		return nil
+	}
+	for v, dist := range current.arcs {
+		//If the arc has better access, than the current best, update the Vertex being touched
+		if (shortest && current.distance+dist < g.Verticies[v].distance) ||
+			(!shortest && current.distance+dist > g.Verticies[v].distance) {
+			if current.bestVertex == v && g.Verticies[v].ID != dest {
+				//also only do this if we aren't checkout out the best distance again
+				//This seems familiar 8^)
+				return newErrLoop(current.ID, v)
+			}
+			g.Verticies[v].distance = current.distance + dist
+			g.Verticies[v].bestVertex = current.ID
+			if v == dest {
+				//If this is the destination update best, so we can stop looking at
+				// useless Verticies
+				g.Lock()
+				g.best = current.distance + dist
+				g.visitedDest = true
+				g.Unlock()
+				continue // Do not push if dest
+			}
+			//Push this updated Vertex into the list to be evaluated, pushes in
+			// sorted form
+			g.Lock()
+			g.visiting.PushOrdered(&g.Verticies[v])
+			g.Unlock()
+		}
+	}
+	return nil
 }
 
 func (g *Graph) finally(src, dest int) (BestPath, error) {

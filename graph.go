@@ -3,6 +3,7 @@ package dijkstra
 import (
 	"errors"
 	"fmt"
+	"sync"
 )
 
 //Graph contains all the graph details
@@ -15,6 +16,25 @@ type Graph struct {
 	mapping         map[string]int
 	usingMap        bool
 	highestMapIndex int
+	sync.RWMutex
+}
+
+func (g *Graph) visitingLen() int {
+	g.RLock()
+	defer g.RUnlock()
+	return g.visiting.Len()
+}
+func (g *Graph) visitingPop() *Vertex {
+	g.Lock()
+	defer g.Unlock()
+	return g.visiting.PopOrdered()
+
+}
+func (g *Graph) visitingPush(v *Vertex) {
+	g.Lock()
+	defer g.Unlock()
+	g.visiting.PushOrdered(v)
+
 }
 
 //NewGraph creates a new empty graph
@@ -50,7 +70,7 @@ func (g *Graph) GetVertex(ID int) (*Vertex, error) {
 	return &g.Verticies[ID], nil
 }
 
-func (g Graph) validate() error {
+func (g *Graph) validate() error {
 	for _, v := range g.Verticies {
 		for a := range v.arcs {
 			if a >= len(g.Verticies) || (g.Verticies[a].ID == 0 && a != 0) {

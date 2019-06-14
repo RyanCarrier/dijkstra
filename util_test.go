@@ -3,6 +3,7 @@ package dijkstra
 import (
 	"fmt"
 	"reflect"
+	"sync"
 	"testing"
 )
 
@@ -120,61 +121,63 @@ func getAGraph() Graph {
 		[]Vertex{
 			Vertex{0, 0, 0, map[int]int64{
 				1: 4,
-				2: 2},
+				2: 2}, sync.RWMutex{},
 			},
 			Vertex{1, 0, 0, map[int]int64{
 				3: 2,
 				2: 3,
-				4: 3},
+				4: 3}, sync.RWMutex{},
 			},
 			Vertex{2, 0, 0, map[int]int64{
 				1: 1,
 				3: 4,
-				4: 5},
+				4: 5}, sync.RWMutex{},
 			},
-			Vertex{3, 0, 0, map[int]int64{}},
+			Vertex{3, 0, 0, map[int]int64{}, sync.RWMutex{}},
 			Vertex{4, 0, 0, map[int]int64{
-				3: 1},
+				3: 1}, sync.RWMutex{},
 			},
 		},
 		priorityQueueNewShort(), //newLinkedList(),
 		map[string]int{},
 		false,
 		0,
+		sync.RWMutex{},
 	}
 }
 
-func getBGraph() Graph {
-	return Graph{
+func getBGraph() *Graph {
+	return &Graph{
 		0, false,
 		[]Vertex{
 			Vertex{0, 0, 0, map[int]int64{
 				1: 4,
-				2: 2},
+				2: 2}, sync.RWMutex{},
 			},
 			Vertex{1, 0, 0, map[int]int64{
 				3: 2,
 				2: 3,
-				4: 3},
+				4: 3}, sync.RWMutex{},
 			},
 			Vertex{2, 0, 0, map[int]int64{
 				1: 1,
 				3: 4,
-				4: 5},
+				4: 5}, sync.RWMutex{},
 			},
 			Vertex{3, 0, 0, map[int]int64{
-				5: 10}},
+				5: 10}, sync.RWMutex{}},
 			Vertex{4, 0, 0, map[int]int64{
-				3: 1},
+				3: 1}, sync.RWMutex{},
 			},
 			Vertex{5, 0, 0, map[int]int64{
-				3: 10},
+				3: 10}, sync.RWMutex{},
 			},
 		},
 		priorityQueueNewShort(), //newLinkedList(),
 		map[string]int{},
 		false,
 		0,
+		sync.RWMutex{},
 	}
 }
 
@@ -190,31 +193,32 @@ func getCGraph() Graph {
 		[]Vertex{
 			Vertex{0, 0, 0, map[int]int64{
 				1: -4,
-				2: 2},
+				2: 2}, sync.RWMutex{},
 			},
 			Vertex{1, 0, 0, map[int]int64{
 				3: 2,
 				2: -3,
-				4: 3},
+				4: 3}, sync.RWMutex{},
 			},
 			Vertex{2, 0, 0, map[int]int64{
 				1: 1,
 				3: 4,
-				4: 5},
+				4: 5}, sync.RWMutex{},
 			},
 			Vertex{3, 0, 0, map[int]int64{
-				5: -10}},
+				5: -10}, sync.RWMutex{}},
 			Vertex{4, 0, 0, map[int]int64{
-				3: 1},
+				3: 1}, sync.RWMutex{},
 			},
 			Vertex{5, 0, 0, map[int]int64{
-				3: -10},
+				3: -10}, sync.RWMutex{},
 			},
 		},
 		priorityQueueNewShort(), //newLinkedList(),
 		map[string]int{},
 		false,
 		0,
+		sync.RWMutex{},
 	}
 }
 
@@ -223,14 +227,14 @@ func getGGraph() (Graph, map[string]int) {
 			0, false,
 			[]Vertex{
 				Vertex{0, 0, 0, map[int]int64{
-					1: 2},
+					1: 2}, sync.RWMutex{},
 				},
 				Vertex{1, 0, 0, map[int]int64{
-					2: 5},
+					2: 5}, sync.RWMutex{},
 				},
 				Vertex{2, 0, 0, map[int]int64{
 					0: 1,
-					1: 1},
+					1: 1}, sync.RWMutex{},
 				},
 			},
 			priorityQueueNewShort(), //newLinkedList(),
@@ -241,6 +245,7 @@ func getGGraph() (Graph, map[string]int) {
 			},
 			false,
 			0,
+			sync.RWMutex{},
 		}, map[string]int{
 			"A": 0,
 			"B": 1,
@@ -253,22 +258,23 @@ func getIGraph() Graph {
 		0, false,
 		[]Vertex{
 			Vertex{0, 0, 0, map[int]int64{
-				1: 2},
+				1: 2}, sync.RWMutex{},
 			},
 			Vertex{1, 0, 0, map[int]int64{
-				2: 3},
+				2: 3}, sync.RWMutex{},
 			},
 			Vertex{2, 0, 0, map[int]int64{
-				3: 4},
+				3: 4}, sync.RWMutex{},
 			},
 			Vertex{3, 0, 0, map[int]int64{
-				2: 5},
+				2: 5}, sync.RWMutex{},
 			},
-			Vertex{4, 0, 0, map[int]int64{}},
+			Vertex{4, 0, 0, map[int]int64{}, sync.RWMutex{}},
 		},
 		priorityQueueNewShort(), //newLinkedList(),
 		map[string]int{},
 		false,
 		0,
+		sync.RWMutex{},
 	}
 }

@@ -43,22 +43,24 @@ func TestAddVertex(t *testing.T) {
 }
 
 func TestValidateCorrect(t *testing.T) {
-	if newGraph().validate() != nil {
-		t.Error(newGraph().validate().Error(), " should be nil")
+	ng := newGraph()
+	if ng.validate() != nil {
+		t.Error(ng.validate().Error(), " should be nil")
 	}
 }
 
 func TestValidateIncorrect(t *testing.T) {
-	if newBadGraph().validate() == nil {
+	nbg := newBadGraph()
+	if nbg.validate() == nil {
 		t.Error("graph should not have validated")
 	}
 }
 
-func newGraph() Graph {
+func newGraph() *Graph {
 	return getBGraph()
 }
 
-func newBadGraph() Graph {
+func newBadGraph() *Graph {
 	g := getBGraph()
 	g.Verticies[0].AddArc(9999, 1)
 	return g
