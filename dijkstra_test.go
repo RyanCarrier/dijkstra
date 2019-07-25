@@ -320,6 +320,40 @@ func testSolution(t *testing.T, best BestPath, wanterr error, filename string, f
 	testResults(t, gotAll[0], best, shortest, filename)
 }
 
+func testGraphSolutionAll(t *testing.T, best BestPaths, wanterr error, graph Graph, from, to int, shortest bool) {
+	var err error
+	var gotAll BestPaths
+	if shortest {
+		gotAll, err = graph.ShortestAll(from, to)
+	} else {
+		gotAll, err = graph.LongestAll(from, to)
+	}
+	testErrors(t, wanterr, err, "From graph")
+	if len(gotAll) == 0 {
+		gotAll = BestPaths{BestPath{}}
+	}
+	testResultsGraphAll(t, gotAll, best, shortest)
+}
+
+func testResultsGraphAll(t *testing.T, got, best BestPaths, shortest bool) {
+	distmethod := "Shortest"
+	if !shortest {
+		distmethod = "Longest"
+	}
+	if len(got) != len(best) {
+		t.Error(distmethod, " amount of solutions incorrect\ngot: ", len(got), "\nwant: ", len(best))
+		return
+	}
+	for i := range got {
+		if got[i].Distance != best[i].Distance {
+			t.Error(distmethod, " distance incorrect\ngot: ", got[i].Distance, "\nwant: ", best[i].Distance)
+		}
+		if !reflect.DeepEqual(got[i].Path, best[i].Path) {
+			t.Error(distmethod, " path incorrect\ngot: ", got[i].Path, "\nwant: ", best[i].Path)
+		}
+	}
+}
+
 func testResults(t *testing.T, got, best BestPath, shortest bool, filename string) {
 	distmethod := "Shortest"
 	if !shortest {
