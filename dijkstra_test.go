@@ -30,6 +30,22 @@ func TestCorrect(t *testing.T) {
 	testSolution(t, getKSolShort(), nil, "testdata/K.txt", 0, 4, true, -1)
 }
 
+func TestCorrectAll(t *testing.T) {
+	graph := NewGraph()
+	//Add the 3 verticies
+	graph.AddVertex(0)
+	graph.AddVertex(1)
+	graph.AddVertex(2)
+	graph.AddVertex(3)
+
+	//Add the arcs
+	graph.AddArc(0, 1, 1)
+	graph.AddArc(0, 2, 1)
+	graph.AddArc(1, 3, 0)
+	graph.AddArc(2, 3, 0)
+	testGraphSolutionAll(t, BestPaths{BestPath{1, []int{0, 1, 3}}, BestPath{1, []int{0, 2, 3}}}, nil, *graph, 0, 3, true)
+}
+
 func TestCorrectAllLists(t *testing.T) {
 	for i := 0; i <= 3; i++ {
 		testSolution(t, getBSol(), nil, "testdata/B.txt", 0, 5, true, i)
