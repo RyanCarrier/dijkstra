@@ -64,7 +64,7 @@ func (g Graph) validate() error {
 //SetDefaults sets the distance and best node to that specified
 func (g *Graph) setDefaults(Distance int64, BestNode int) {
 	for i := range g.Verticies {
-		g.Verticies[i].bestVertex = BestNode
+		g.Verticies[i].bestVerticies = []int{BestNode}
 		g.Verticies[i].distance = Distance
 	}
 }
