@@ -1,0 +1,6 @@
+github.com/RyanCarrier/dijkstra-1 v0.0.0-20170512020943-0e5801a26345 h1:fgSpoKViTSqRb4hjDNj10ig5wUvO0CayCzFdLf6fuRM=
+github.com/RyanCarrier/dijkstra-1 v0.0.0-20170512020943-0e5801a26345/go.mod h1:OK4EvWJ441LQqGzed5NGB6vKBAE34n3z7iayPcEwr30=
+github.com/albertorestifo/dijkstra v0.0.0-20160910063646-aba76f725f72 h1:uGeGZl8PxSq8VZGG4QK5njJTFA4/G/x5CYORvQVXtAE=
+github.com/albertorestifo/dijkstra v0.0.0-20160910063646-aba76f725f72/go.mod h1:o+JdB7VetTHjLhU0N57x18B9voDBQe0paApdEAEoEfw=
+github.com/mattomatic/dijkstra v0.0.0-20130617153013-6f6d134eb237 h1:acuCHBjzG7MFTugvx3buC4m5rLDLaKC9J8C9jtlraRc=
+github.com/mattomatic/dijkstra v0.0.0-20130617153013-6f6d134eb237/go.mod h1:UOnLAUmVG5paym8pD3C4B9BQylUDC2vXFJJpT7JrlEA=
