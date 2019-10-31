@@ -83,7 +83,7 @@ func (g *Graph) forceList(i int) {
 
 func (g *Graph) bestPath(src, dest int) BestPath {
 	var path []int
-	for c := g.Verticies[dest]; c.ID != src; c = g.Verticies[c.bestVertex] {
+	for c := g.Verticies[dest]; c.ID != src; c = g.Verticies[c.bestVerticies[0]] {
 		path = append(path, c.ID)
 	}
 	path = append(path, src)
@@ -118,13 +118,13 @@ func (g *Graph) postSetupEvaluate(src, dest int, shortest bool) (BestPath, error
 			//If the arc has better access, than the current best, update the Vertex being touched
 			if (shortest && current.distance+dist < g.Verticies[v].distance) ||
 				(!shortest && current.distance+dist > g.Verticies[v].distance) {
-				if current.bestVertex == v && g.Verticies[v].ID != dest {
+				if current.bestVerticies[0] == v && g.Verticies[v].ID != dest {
 					//also only do this if we aren't checkout out the best distance again
 					//This seems familiar 8^)
 					return BestPath{}, newErrLoop(current.ID, v)
 				}
 				g.Verticies[v].distance = current.distance + dist
-				g.Verticies[v].bestVertex = current.ID
+				g.Verticies[v].bestVerticies[0] = current.ID
 				if v == dest {
 					//If this is the destination update best, so we can stop looking at
 					// useless Verticies

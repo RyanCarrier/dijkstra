@@ -51,6 +51,7 @@ func Import(filename string) (g Graph, err error) {
 			for ; temp < len(g.Verticies); temp++ {
 				g.Verticies[temp].ID = temp
 				g.Verticies[temp].arcs = map[int]int64{}
+				g.Verticies[temp].bestVerticies = []int{-1}
 			}
 		}
 		if len(f) == 1 {
