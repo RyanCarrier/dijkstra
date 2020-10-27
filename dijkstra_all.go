@@ -68,7 +68,7 @@ func (g *Graph) postSetupEvaluateAll(src, dest int, shortest bool) (BestPaths, e
 }
 
 func (g *Graph) bestPaths(src, dest int) BestPaths {
-	paths := g.visitPath(src, dest, dest, [][]int{})
+	paths := g.visitPath(src, dest, dest)
 	best := BestPaths{}
 	for indexPaths := range paths {
 		for i, j := 0, len(paths[indexPaths])-1; i < j; i, j = i+1, j-1 {
@@ -80,18 +80,18 @@ func (g *Graph) bestPaths(src, dest int) BestPaths {
 	return best
 }
 
-func (g *Graph) visitPath(src, dest, currentNode int, paths [][]int) [][]int {
+func (g *Graph) visitPath(src, dest, currentNode int) [][]int {
 	if currentNode == src {
-		paths[len(paths)-1] = append(paths[len(paths)-1], currentNode)
-		return paths
-	}
-	for _, vertex := range g.Verticies[currentNode].bestVerticies {
-		if currentNode == dest {
-			paths = append(paths, []int{dest})
-		} else {
-			paths[len(paths)-1] = append(paths[len(paths)-1], currentNode)
+		return [][]int{
+			[]int{currentNode},
 		}
-		paths = g.visitPath(src, dest, vertex, paths)
+	}
+	paths := [][]int{}
+	for _, vertex := range g.Verticies[currentNode].bestVerticies {
+		sps := g.visitPath(src, dest, vertex)
+		for i := range sps {
+			paths = append(paths, append([]int{currentNode}, sps[i]...))
+		}
 	}
 	return paths
 }

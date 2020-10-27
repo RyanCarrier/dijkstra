@@ -46,6 +46,26 @@ func TestCorrectSolutionsAll(t *testing.T) {
 	testGraphSolutionAll(t, BestPaths{BestPath{1, []int{0, 2, 3}}, BestPath{1, []int{0, 1, 3}}}, nil, *graph, 0, 3, true)
 }
 
+func TestCorrectSolutionsAll2(t *testing.T) {
+	graph := NewGraph()
+	graph.AddVertex(0)
+	graph.AddVertex(1)
+	graph.AddVertex(2)
+	graph.AddVertex(3)
+	graph.AddVertex(4)
+	graph.AddVertex(5)
+	graph.AddArc(0, 1, 1)
+	graph.AddArc(0, 3, 1)
+	graph.AddArc(1, 2, 1)
+	graph.AddArc(1, 4, 1)
+	graph.AddArc(2, 5, 1)
+	graph.AddArc(3, 4, 1)
+	graph.AddArc(4, 2, 1)
+	graph.AddArc(4, 5, 1)
+
+	testGraphSolutionAll(t, BestPaths{BestPath{3, []int{0, 3, 4, 5}}, BestPath{3, []int{0, 1, 4, 5}}, BestPath{3, []int{0, 1, 2, 5}}}, nil, *graph, 0, 5, true)
+}
+
 func TestCorrectAllLists(t *testing.T) {
 	for i := 0; i <= 3; i++ {
 		testSolution(t, getBSol(), nil, "testdata/B.txt", 0, 5, true, i)
