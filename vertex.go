@@ -51,13 +51,11 @@ func (v *Vertex) AddArc(Destination int, Distance int64) {
 	v.arcs[Destination] = Distance
 }
 
-/*
-I decided you don't get that kind of privelage
-#checkyourprivelage
-//RemoveArc completely removes the arc to Destination (if it exists)
+//RemoveArc completely removes the arc to Destination (if it exists), this method will
+// not error if Destination doesn't exist, only nop
 func (v *Vertex) RemoveArc(Destination int) {
 	delete(v.arcs, Destination)
-}*/
+}
 
 //GetArc gets the specified arc to Destination, bool is false if no arc found
 func (v *Vertex) GetArc(Destination int) (distance int64, ok bool) {

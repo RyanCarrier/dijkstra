@@ -47,3 +47,34 @@ func TestMapping(t *testing.T) {
 		t.Error("AddArc didn't fail when referencing non existant vertex (source)")
 	}
 }
+
+func TestRemoveArc(t *testing.T) {
+	var err error
+	g := newGraph()
+	if err = g.RemoveArc(1, 10); err == nil {
+		t.Error("RemoveArc should fail on verticies that don't exist")
+	}
+	g.AddVertex(1)
+	if err = g.RemoveArc(1, 10); err == nil {
+		t.Error("RemoveArc should fail on destination verticies that don't exist")
+	}
+	g.AddVertex(10)
+	g.AddVertex(100)
+	if err = g.RemoveArc(1, 10); err != nil {
+		t.Error("RemoveArc should not fail on Verticies that exist")
+	}
+	v, _ := g.GetVertex(1)
+	if _, ok := v.GetArc(10); ok {
+		t.Error("Arc should not yet exist")
+	}
+	_ = g.AddArc(1, 10, 100)
+	if _, ok := v.GetArc(10); !ok {
+		t.Error("Arc should exist")
+	}
+	if err = g.RemoveArc(1, 10); err != nil {
+		t.Error("RemoveArc should not fail when removing valid arcs")
+	}
+	if _, ok := v.GetArc(10); ok {
+		t.Error("Arc not should exist")
+	}
+}

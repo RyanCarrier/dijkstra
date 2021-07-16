@@ -61,3 +61,14 @@ func (g *Graph) AddArc(Source, Destination int, Distance int64) error {
 	g.Verticies[Source].AddArc(Destination, Distance)
 	return nil
 }
+
+//RemoveArc removes and arc from the Source vertex to the Destination vertex
+// fails if either vertex doesn't exist, but will succeed if destination is
+// not an arc of Source (as a nop)
+func (g *Graph) RemoveArc(Source, Destination int) error {
+	if len(g.Verticies) <= Source || len(g.Verticies) <= Destination {
+		return errors.New("Source/Destination not found")
+	}
+	g.Verticies[Source].RemoveArc(Destination)
+	return nil
+}
