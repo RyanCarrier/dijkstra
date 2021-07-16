@@ -83,7 +83,7 @@ func (g *Graph) bestPaths(src, dest int) BestPaths {
 func (g *Graph) visitPath(src, dest, currentNode int) [][]int {
 	if currentNode == src {
 		return [][]int{
-			[]int{currentNode},
+			{currentNode},
 		}
 	}
 	paths := [][]int{}
