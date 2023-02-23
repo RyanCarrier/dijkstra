@@ -140,7 +140,7 @@ func getAGraph() Graph {
 		priorityQueueNewShort(), //newLinkedList(),
 		map[string]int{},
 		false,
-		0,
+		0, false,
 	}
 }
 
@@ -174,7 +174,7 @@ func getBGraph() Graph {
 		priorityQueueNewShort(), //newLinkedList(),
 		map[string]int{},
 		false,
-		0,
+		0, false,
 	}
 }
 
@@ -214,7 +214,7 @@ func getCGraph() Graph {
 		priorityQueueNewShort(), //newLinkedList(),
 		map[string]int{},
 		false,
-		0,
+		0, false,
 	}
 }
 
@@ -240,7 +240,7 @@ func getGGraph() (Graph, map[string]int) {
 				"C": 2,
 			},
 			false,
-			0,
+			0, false,
 		}, map[string]int{
 			"A": 0,
 			"B": 1,
@@ -270,5 +270,6 @@ func getIGraph() Graph {
 		map[string]int{},
 		false,
 		0,
+		false,
 	}
 }

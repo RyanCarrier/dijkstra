@@ -1,5 +1,8 @@
 package dijkstra
 
+//BestPaths contains the list of best solutions
+type BestPaths []BestPath
+
 //ShortestAll calculates all of the shortest paths from src to dest
 func (g *Graph) ShortestAll(src, dest int) (BestPaths, error) {
 	return g.evaluateAll(src, dest, true)
@@ -11,6 +14,11 @@ func (g *Graph) LongestAll(src, dest int) (BestPaths, error) {
 }
 
 func (g *Graph) evaluateAll(src, dest int, shortest bool) (BestPaths, error) {
+	if g.running {
+		return BestPaths{}, ErrAlreadyCalculating
+	}
+	g.running = true
+	defer func() { g.running = false }()
 	//Setup graph
 	g.setup(shortest, src, -1)
 	return g.postSetupEvaluateAll(src, dest, shortest)

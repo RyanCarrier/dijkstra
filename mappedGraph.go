@@ -8,7 +8,7 @@ import (
 //GetMapped gets the key assosciated with the mapped int
 func (g *Graph) GetMapped(a int) (string, error) {
 	if !g.usingMap || g.mapping == nil {
-		return "", errors.New("map is not being used/initialised")
+		return "", ErrNoMap
 	}
 	for k, v := range g.mapping {
 		if v == a {
@@ -21,7 +21,7 @@ func (g *Graph) GetMapped(a int) (string, error) {
 //GetMapping gets the index associated with the specified key
 func (g *Graph) GetMapping(a string) (int, error) {
 	if !g.usingMap || g.mapping == nil {
-		return -1, errors.New("map is not being used/initialised")
+		return -1, ErrNoMap
 	}
 	if b, ok := g.mapping[a]; ok {
 		return b, nil
@@ -56,7 +56,7 @@ func (g *Graph) AddMappedArc(Source, Destination string, Distance int64) error {
 // Destination Vertex
 func (g *Graph) AddArc(Source, Destination int, Distance int64) error {
 	if len(g.Verticies) <= Source || len(g.Verticies) <= Destination {
-		return errors.New("Source/Destination not found")
+		return ErrNodeNotFound
 	}
 	g.Verticies[Source].AddArc(Destination, Distance)
 	return nil
@@ -67,7 +67,7 @@ func (g *Graph) AddArc(Source, Destination int, Distance int64) error {
 // not an arc of Source (as a nop)
 func (g *Graph) RemoveArc(Source, Destination int) error {
 	if len(g.Verticies) <= Source || len(g.Verticies) <= Destination {
-		return errors.New("Source/Destination not found")
+		return ErrNodeNotFound
 	}
 	g.Verticies[Source].RemoveArc(Destination)
 	return nil

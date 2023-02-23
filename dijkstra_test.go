@@ -5,24 +5,104 @@ import (
 	"os"
 	"reflect"
 	"strconv"
+	"sync"
 	"testing"
 )
 
-func TestNoPath(t *testing.T) {
-	testSolution(t, BestPath{}, ErrNoPath, "testdata/I.txt", 0, 4, true, -1)
-}
+func TestErrors(t *testing.T) {
+	t.Run("ErrNoPath", func(t *testing.T) {
+		testSolution(t, BestPath{}, ErrNoPath, "testdata/I.txt", 0, 4, true, -1)
+	})
+	t.Run("ErrLoop", func(t *testing.T) {
+		testSolution(t, BestPath{}, newErrLoop(2, 1), "testdata/J.txt", 0, 4, true, -1)
+	})
+	t.Run("ErrAlreadyCalculating", func(t *testing.T) {
+		nodeAmount := 5
+		g := GenerateWorstCase(nodeAmount)
+		g.running = true
+		_, err := g.Shortest(0, nodeAmount-1)
+		if err != ErrAlreadyCalculating {
+			t.Error("gotErr:", err, "wantErr:", ErrAlreadyCalculating)
+		}
+	})
 
-func TestLoop(t *testing.T) {
-	testSolution(t, BestPath{}, newErrLoop(2, 1), "testdata/J.txt", 0, 4, true, -1)
 }
 
 func TestCorrect(t *testing.T) {
-	testSolution(t, getBSol(), nil, "testdata/B.txt", 0, 5, true, -1)
-	testSolution(t, getKSolLong(), nil, "testdata/K.txt", 0, 4, false, -1)
-	testSolution(t, getKSolShort(), nil, "testdata/K.txt", 0, 4, true, -1)
+	t.Run("Default", func(t *testing.T) {
+		testSolution(t, getBSol(), nil, "testdata/B.txt", 0, 5, true, -1)
+		testSolution(t, getKSolLong(), nil, "testdata/K.txt", 0, 4, false, -1)
+		testSolution(t, getKSolShort(), nil, "testdata/K.txt", 0, 4, true, -1)
+	})
+	t.Run("SolutionsAll", testCorrectSolutionsAll)
+	t.Run("Lists", func(t *testing.T) {
+		for i := 0; i <= 3; i++ {
+			testSolution(t, getBSol(), nil, "testdata/B.txt", 0, 5, true, i)
+			testSolution(t, getKSolLong(), nil, "testdata/K.txt", 0, 4, false, i)
+			testSolution(t, getKSolShort(), nil, "testdata/K.txt", 0, 4, true, i)
+		}
+	})
+	t.Run("AutoLargeList", func(t *testing.T) {
+		g := NewGraph()
+		for i := 0; i < 2000; i++ {
+			v := g.AddNewVertex()
+			v.AddArc(i+1, 1)
+		}
+		g.AddNewVertex()
+		_, err := g.Shortest(0, 2000)
+		testErrors(t, nil, err, "manual test")
+		_, err = g.Longest(0, 2000)
+		testErrors(t, nil, err, "manual test")
+	})
+	t.Run("Concurrent", testConcurrentSolving)
+	t.Run("SequentialRuns", func(t *testing.T) {
+		nodeAmount := 10
+		g := GenerateWorstCase(nodeAmount)
+		initialResult, _ := g.Shortest(0, nodeAmount-1)
+		for i := 0; i < 10; i++ {
+			result, err := g.Shortest(0, nodeAmount-1)
+			if err != nil {
+				t.Error("Sequential runs had error: ", err)
+			}
+			if initialResult.Distance != result.Distance {
+				t.Error("Sequential runs are not equal (distance) ", initialResult.Distance, result.Distance)
+			}
+			if !reflect.DeepEqual(initialResult.Path, result.Path) {
+				t.Error("Sequential runs are not equal (path) ", initialResult.Path, result.Path)
+			}
+		}
+	})
 }
+func testConcurrentSolving(t *testing.T) {
+	baseNodes := 100
+	graphAmount := 8
+	graphs := []Graph{}
+	for i := 0; i < graphAmount; i++ {
+		graphs = append(graphs, GenerateWorstCase(baseNodes+i))
+	}
+	var results = make([]BestPath, len(graphs))
+	wg := sync.WaitGroup{}
+	wg.Add(len(graphs))
+	for i, g := range graphs {
+		go func(i int, g Graph) {
+			results[i], _ = g.Shortest(0, baseNodes-1+i)
+			wg.Done()
+		}(i, g)
+	}
+	wg.Wait()
+	for i, result := range results {
+		if len(result.Path) != baseNodes+i {
+			t.Error("Incorrect path length", len(result.Path), "!=", baseNodes+i)
+		}
+		for j, stepNode := range result.Path {
+			if stepNode != j {
+				t.Error("Incorrect path step", stepNode, "!=", j)
+			}
+		}
+	}
 
-func TestCorrectSolutionsAll(t *testing.T) {
+}
+func testCorrectSolutionsAll(t *testing.T) {
 	graph := NewGraph()
 	//Add the 3 verticies
 	graph.AddVertex(0)
@@ -36,10 +116,8 @@ func TestCorrectSolutionsAll(t *testing.T) {
 	graph.AddArc(1, 3, 0)
 	graph.AddArc(2, 3, 0)
 	testGraphSolutionAll(t, BestPaths{BestPath{1, []int{0, 2, 3}}, BestPath{1, []int{0, 1, 3}}}, nil, *graph, 0, 3, true)
-}
 
-func TestCorrectSolutionsAll2(t *testing.T) {
-	graph := NewGraph()
+	graph = NewGraph()
 	graph.AddVertex(0)
 	graph.AddVertex(1)
 	graph.AddVertex(2)
@@ -58,28 +136,7 @@ func TestCorrectSolutionsAll2(t *testing.T) {
 	testGraphSolutionAll(t, BestPaths{BestPath{3, []int{0, 3, 4, 5}}, BestPath{3, []int{0, 1, 4, 5}}, BestPath{3, []int{0, 1, 2, 5}}}, nil, *graph, 0, 5, true)
 }
 
-func TestCorrectAllLists(t *testing.T) {
-	for i := 0; i <= 3; i++ {
-		testSolution(t, getBSol(), nil, "testdata/B.txt", 0, 5, true, i)
-		testSolution(t, getKSolLong(), nil, "testdata/K.txt", 0, 4, false, i)
-		testSolution(t, getKSolShort(), nil, "testdata/K.txt", 0, 4, true, i)
-	}
-}
-
-func TestCorrectAutoLargeList(t *testing.T) {
-	g := NewGraph()
-	for i := 0; i < 2000; i++ {
-		v := g.AddNewVertex()
-		v.AddArc(i+1, 1)
-	}
-	g.AddNewVertex()
-	_, err := g.Shortest(0, 2000)
-	testErrors(t, nil, err, "manual test")
-	_, err = g.Longest(0, 2000)
-	testErrors(t, nil, err, "manual test")
-}
-
-var benchNames = []string{"github.com/RyanCarrier-ALL", "github.com/RyanCarrier", "github.com/ProfessorQ", "github.com/albertorestifo"}
+var benchNames = []string{"github.com/RyanCarrier-ALL", "github.com/RyanCarrier"}
 var listNames = []string{"PQShort", "PQLong", "LLShort", "LLLong"}
 
 func BenchmarkSetup(b *testing.B) {

@@ -7,10 +7,10 @@ import (
 
 func TestMapping(t *testing.T) {
 	g := Graph{}
-	if _, err := g.GetMapped(0); err == nil || err.Error() != "Map is not being used/initialised" {
+	if _, err := g.GetMapped(0); err == nil || err.Error() != ErrNoMap.Error() {
 		t.Error("No init map should return correct err\n", err)
 	}
-	if _, err := g.GetMapping("A"); err == nil || err.Error() != "Map is not being used/initialised" {
+	if _, err := g.GetMapping("A"); err == nil || err.Error() != ErrNoMap.Error() {
 		t.Error("No init map should return correct err\n", err)
 	}
 	g = *NewGraph()

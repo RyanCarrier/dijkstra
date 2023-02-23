@@ -15,6 +15,7 @@ type Graph struct {
 	mapping         map[string]int
 	usingMap        bool
 	highestMapIndex int
+	running         bool
 }
 
 //NewGraph creates a new empty graph
