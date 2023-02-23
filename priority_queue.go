@@ -97,11 +97,6 @@ func (pq *priorityQueueBase) Pop() *Vertex {
 // Changing the value of the element at index i and then calling Fix is equivalent to,
 // but less expensive than, calling Remove(h, i) followed by a Push of the new value.
 // The complexity is O(log(n)) where n = h.Len().
-func (pq *priorityQueueWrapper) fix(i int) {
-	if !pq.down(i, pq.Len()) {
-		pq.up(i)
-	}
-}
 
 func (pq *priorityQueueWrapper) up(j int) {
 	for {

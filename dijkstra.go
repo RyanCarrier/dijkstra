@@ -56,26 +56,20 @@ func (g *Graph) forceList(i int) {
 		} else {
 			g.forceList(0)
 		}
-		break
 	case -1:
 		if len(g.Verticies) < 800 {
 			g.forceList(3)
 		} else {
 			g.forceList(1)
 		}
-		break
 	case 0:
 		g.visiting = priorityQueueNewShort()
-		break
 	case 1:
 		g.visiting = priorityQueueNewLong()
-		break
 	case 2:
 		g.visiting = linkedListNewShort()
-		break
 	case 3:
 		g.visiting = linkedListNewLong()
-		break
 	default:
 		panic(i)
 	}

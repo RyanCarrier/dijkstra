@@ -107,7 +107,7 @@ func (g Graph) ExportToFile(filename string) error {
 	for _, v := range g.Verticies {
 		if g.usingMap {
 			if i, err = g.GetMapped(v.ID); err != nil {
-				return errors.New("Mapping fail when exporting; " + err.Error())
+				return errors.New("mapping fail when exporting; " + err.Error())
 			}
 			fmt.Fprint(f, i)
 		} else {
@@ -116,7 +116,7 @@ func (g Graph) ExportToFile(filename string) error {
 		for key, val := range v.arcs {
 			if g.usingMap {
 				if i, err = g.GetMapped(key); err != nil {
-					return errors.New("Mapping fail when exporting; " + err.Error())
+					return errors.New("mapping fail when exporting; " + err.Error())
 				}
 				fmt.Fprint(f, " ", i, ",", val)
 			} else {
