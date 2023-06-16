@@ -53,6 +53,10 @@ func TestCorrect(t *testing.T) {
 		testErrors(t, nil, err, "manual test")
 		_, err = g.Longest(0, 2000)
 		testErrors(t, nil, err, "manual test")
+		_, err = g.ShortestSafe(0, 2000)
+		testErrors(t, nil, err, "manual test")
+		_, err = g.LongestSafe(0, 2000)
+		testErrors(t, nil, err, "manual test")
 	})
 	t.Run("Concurrent", testConcurrentSolving)
 	t.Run("SequentialRuns", func(t *testing.T) {
@@ -61,6 +65,18 @@ func TestCorrect(t *testing.T) {
 		initialResult, _ := g.Shortest(0, nodeAmount-1)
 		for i := 0; i < 10; i++ {
 			result, err := g.Shortest(0, nodeAmount-1)
+			if err != nil {
+				t.Error("Sequential runs had error: ", err)
+			}
+			if initialResult.Distance != result.Distance {
+				t.Error("Sequential runs are not equal (distance) ", initialResult.Distance, result.Distance)
+			}
+			if !reflect.DeepEqual(initialResult.Path, result.Path) {
+				t.Error("Sequential runs are not equal (path) ", initialResult.Path, result.Path)
+			}
+		}
+		for i := 0; i < 10; i++ {
+			result, err := g.ShortestSafe(0, nodeAmount-1)
 			if err != nil {
 				t.Error("Sequential runs had error: ", err)
 			}
@@ -136,7 +152,7 @@ func testCorrectSolutionsAll(t *testing.T) {
 	testGraphSolutionAll(t, BestPaths{BestPath{3, []int{0, 3, 4, 5}}, BestPath{3, []int{0, 1, 4, 5}}, BestPath{3, []int{0, 1, 2, 5}}}, nil, *graph, 0, 5, true)
 }
 
-var benchNames = []string{"github.com/RyanCarrier-ALL", "github.com/RyanCarrier"}
+var benchNames = []string{"github.com/RyanCarrier-ALL", "github.com/RyanCarrier", "github.com/RyanCarrierSafe"}
 var listNames = []string{"PQShort", "PQLong", "LLShort", "LLLong"}
 
 func BenchmarkSetup(b *testing.B) {
@@ -234,6 +250,8 @@ func benchmarkAlt(b *testing.B, nodes, i int) {
 		benchmarkRCall(b, filename)
 	case 1:
 		benchmarkRC(b, filename)
+	case 2:
+		benchmarkRCa(b, filename)
 	default:
 		b.Error("You're retarded")
 	}
@@ -246,6 +264,15 @@ func benchmarkRC(b *testing.B, filename string) {
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		graph.Shortest(src, dest)
+	}
+}
+func benchmarkRCa(b *testing.B, filename string) {
+	graph, _ := Import(filename)
+	src, dest := 0, len(graph.Verticies)-1
+	//====RESET TIMER BEFORE LOOP====
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		graph.ShortestSafe(src, dest)
 	}
 }
 func benchmarkRCall(b *testing.B, filename string) {
@@ -274,6 +301,13 @@ func testSolution(t *testing.T, best BestPath, wanterr error, filename string, f
 		got, err = graph.Shortest(from, to)
 	} else {
 		got, err = graph.Longest(from, to)
+	}
+	testErrors(t, wanterr, err, filename)
+	testResults(t, got, best, shortest, filename)
+	if shortest {
+		got, err = graph.ShortestSafe(from, to)
+	} else {
+		got, err = graph.LongestSafe(from, to)
 	}
 	testErrors(t, wanterr, err, filename)
 	testResults(t, got, best, shortest, filename)
