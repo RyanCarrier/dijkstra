@@ -5,29 +5,52 @@ import (
 	"fmt"
 )
 
-//ErrWrongFormat is thrown when the source file input is in an incorrect format
 var ErrWrongFormat = errors.New("wrong source format")
-
-//ErrNoPath is thrown when there is no path from src to dest
 var ErrNoPath = errors.New("no path found")
-
-//ErrMixMapping is thrown when there is a mixture of integers and strings in the input file
-var ErrMixMapping = errors.New("potential mixing of integer and string node ID's :" + ErrWrongFormat.Error())
-
-//ErrLoopDetected is thrown when a loop is detected, causing the distance to go
-// to inf (or -inf), or just generally loop forever
 var ErrLoopDetected = errors.New("infinite loop detected")
-
-//ErrNodeNotFound is thrown when a node is not found in the graph when it is being requested/used
-var ErrNodeNotFound = errors.New("node not found")
-
-//ErrNoMap is thrown when the map is not being used but is being requested/accessed
-var ErrNoMap = errors.New("map is not being used/initialised")
-
-//ErrAlreadyCalculating is thrown when the algorithm is already running
+var ErrVertexNotFound = errors.New("vertex not found")
 var ErrAlreadyCalculating = errors.New("already calculating")
+var ErrVertexAlreadyExists = errors.New("vertex already exists")
+var ErrVertexNegative = errors.New("vertex is negative")
+var ErrArcNotFound = errors.New("arc not found")
+var ErrGraphNotValid = errors.New("graph is not valid")
+var ErrMapNotFound = errors.New("mapping error, can not find mapped vertex")
 
-//NewErrLoop generates a new error with details for loop error
+// not found/item validity
+func newErrMapNotFound(a int) error {
+	return fmt.Errorf("%w '%d'", ErrMapNotFound, a)
+}
+func newErrVertexNotFound(a int) error {
+	return fmt.Errorf("%d %w", a, ErrVertexNotFound)
+}
+func newErrVertexNegative(a int) error {
+	return fmt.Errorf("%d %w", a, ErrVertexNegative)
+}
+func newErrVertexAlreadyExists(a int) error {
+	return fmt.Errorf("%d %w", a, ErrVertexAlreadyExists)
+}
+func newErrArcNotFound(a, b int) error {
+	return fmt.Errorf("%d->%d %w", a, b, ErrArcNotFound)
+}
+
+// graph issues
 func newErrLoop(a, b int) error {
-	return errors.New(fmt.Sprint(ErrLoopDetected.Error(), " from node '", a, "' to node '", b, "'"))
+	return fmt.Errorf("%w, from node '%d' to node '%d'", ErrLoopDetected, a, b)
+}
+func newErrGraphNotValid(a, b int) error {
+	return fmt.Errorf("%w, arc %d->%d, %d not found", ErrGraphNotValid, a, b, b)
+}
+func newErrNoPath(a, b int) error {
+	return fmt.Errorf("%d->%d %w", a, b, ErrNoPath)
+}
+
+// mappped
+func newErrMappedVertexNotFound[T comparable](a T) error {
+	return fmt.Errorf("%v %w", a, ErrVertexNotFound)
+}
+func newErrMappedVertexAlreadyExists[T comparable](a T) error {
+	return fmt.Errorf("%v %w", a, ErrVertexAlreadyExists)
+}
+func newErrMappedArcNotFound[T comparable](a, b T) error {
+	return fmt.Errorf("%v->%v %w", a, b, ErrArcNotFound)
 }

@@ -1,275 +1,188 @@
 package dijkstra
 
 import (
+	"errors"
 	"fmt"
 	"reflect"
+	"strings"
 	"testing"
 )
 
 func TestWrongFormat(t *testing.T) {
-	testWrongFormat(t, "testdata/D.txt")
-	testWrongFormat(t, "testdata/E.txt")
-}
+	importDatas := []string{
+		`
+0 1,12
+1 0 12
+`, `
+0 1,12
+1 0,1Z2
+		`}
 
-func testWrongFormat(t *testing.T, filename string) {
-	_, err := Import(filename)
-	testErrors(t, ErrWrongFormat, err, filename)
-}
-
-func TestCorrectFormat(t *testing.T) {
-	test(t, getAGraph(), map[string]int{}, nil, "testdata/A.txt")
-}
-
-func TestCorrectFormatNegatives(t *testing.T) {
-	test(t, getCGraph(), map[string]int{}, nil, "testdata/C.txt")
-}
-func TestMixingIntString(t *testing.T) {
-	filename := "testdata/H.txt"
-	_, err := Import(filename)
-	testErrors(t, ErrMixMapping, err, filename)
-}
-
-func TestExport(t *testing.T) {
-	testExport(t, getIGraph(), "Graph IG")
-	g, _ := getGGraph()
-	g.usingMap = true
-	testExport(t, g, "Graph G")
-}
-
-func testExport(t *testing.T, g Graph, graph string) {
-	f := "temp.txt"
-	err := g.ExportToFile(f)
-	if err != nil {
-		t.Error("Export to file err should be nil;\n", err)
+	for i, importData := range importDatas {
+		_, err := Import(importData)
+		testErrors(t, ErrWrongFormat, err, i)
 	}
-	got, _ := Import(f)
-	if len(g.Verticies) != len(got.Verticies) {
-		t.Fatal("Verticies not same size", g.Verticies, got.Verticies, "\n", graph)
-	}
-	for i := range g.Verticies {
-		if !reflect.DeepEqual(g.Verticies[i], got.Verticies[i]) {
-			t.Error("Vertex does not match", g.Verticies[i], got.Verticies[i], "\n", graph)
+}
+
+func TestImport(t *testing.T) {
+	t.Run("Correct", func(t *testing.T) {
+		for i, test := range testGraphsCorrect {
+			graph, err := Import(test.stringRepresentation)
+			testErrors(t, nil, err, i)
+			assertGraphsEqual(t, graph, test.graph, i)
 		}
-	}
-	if !reflect.DeepEqual(g.mapping, got.mapping) {
-		t.Error("Maps do not equal", g.mapping, got.mapping, "\n", graph)
-	}
+		t.Run("Mapped", func(t *testing.T) {
+			for i, test := range testMappedGraphs {
+				graph, err := ImportStringMapped(test.stringRepresentation)
+				testErrors(t, nil, err, i)
+				if !reflect.DeepEqual(graph.mapping, test.graph.mapping) {
+					t.Fatal("maps are different (test ", i, ")",
+						"\ngot:\n", fmt.Sprintf("%+v", graph.mapping),
+						"\nwant:\n", fmt.Sprintf("%+v", test.graph.mapping))
+				}
+				assertGraphsEqual(t, graph.graph, test.graph.graph, i)
+			}
+		})
+	})
 }
 
-func TestImportCorrectMap(t *testing.T) {
-	wantgraph, wantmap := getGGraph()
-	test(t, wantgraph, wantmap, nil, "testdata/G.txt")
-	f := "testdata/L.txt"
-	test(t, Graph{
-		Verticies: []Vertex{{ID: 0}, {ID: 1}, {ID: 2}}},
-		map[string]int{
-			"A": 0, "B": 1, "C": 2,
-		}, nil, f)
-
+type typeOptions[T comparable] struct {
+	typeName string
+	a        T
+	b        T
+	c        T
+}
+type customTestType struct {
+	name string
+	age  int
 }
 
-func TestImportNoFile(t *testing.T) {
-	_, err := Import("testdata/Idontexistlol.txt")
+func (c customTestType) Less(other customTestType) int {
+	ageCmp := c.age - other.age
+	if ageCmp != 0 {
+		return ageCmp
+	}
+	return strings.Compare(c.name, other.name)
+}
+
+func TestMaps(t *testing.T) {
+	byteOption := typeOptions[byte]{"byte", 'a', 'b', 'c'}
+	strOption := typeOptions[string]{"byte", "a", "b", "c"}
+	floatOption := typeOptions[float32]{"byte", 0.1, 0.2, 0.3}
+	float64Option := typeOptions[float64]{"byte", 0.1, 0.2, 0.3}
+	customOption := typeOptions[customTestType]{
+		"customTestType",
+		customTestType{"a", 5},
+		customTestType{"b", 1},
+		customTestType{"c", 10},
+	}
+	testMap(t, byteOption)
+	testMap(t, strOption)
+	testMap(t, floatOption)
+	testMap(t, float64Option)
+	testMap(t, customOption)
+}
+func testMap[T comparable](t *testing.T, test typeOptions[T]) {
+	var err error
+	mappedGraph := NewMappedGraph[T]()
+	err = mappedGraph.AddEmptyVertex(test.a)
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = mappedGraph.AddEmptyVertex(test.b)
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = mappedGraph.AddEmptyVertex(test.b)
 	if err == nil {
-		t.Error("no error for non existant file")
+		t.Fatal(err)
+	}
+	err = mappedGraph.AddEmptyVertex(test.c)
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = mappedGraph.AddArc(test.a, test.b, 5)
+	err = mappedGraph.AddArc(test.a, test.c, 10)
+	err = mappedGraph.AddArc(test.c, test.b, 5)
+	if err != nil {
+		t.Fatalf("AddArc fail, err:%v, mapping:%v", err, mappedGraph.mapping)
+	}
+	result, err := mappedGraph.Shortest(test.a, test.b)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if result.Distance != 5 {
+		t.Fatal("wrong distance", result.Distance)
+	}
+	if len(result.Path) != 2 || result.Path[0] != test.a || result.Path[1] != test.b {
+		t.Fatal("wrong path", result.Path)
 	}
 }
 
-func test(t *testing.T, wantgraph Graph, wantmap map[string]int, wanterr error, filename string) {
-	graph, err := Import(filename)
-	gmap := graph.mapping
-	testErrors(t, wanterr, err, filename)
-	if !reflect.DeepEqual(gmap, wantmap) {
-		t.Fatal("maps are different",
-			"\ngot:\n", fmt.Sprintf("%+v", gmap),
-			"\nwant:\n", fmt.Sprintf("%+v", wantmap))
+func TestToString(t *testing.T) {
+	t.Run("Correct", func(t *testing.T) {
+		testToString(t, testGraphsCorrect)
+	})
+	t.Run("Mapped", func(t *testing.T) {
+		testToStringMapped(t, testMappedGraphs)
+	})
+}
+func testToString(t *testing.T, testData []testGraph) {
+	for i, test := range testData {
+		got, _ := Import(test.stringRepresentation)
+		result, err := got.ToString()
+		if err != nil {
+			t.Fatal("Error in test", i, "\n"+err.Error())
+		}
+		imported, _ := Import(result)
+		assertGraphsEqual(t, imported, test.graph, i)
 	}
-	assertGraphsEqual(t, graph, wantgraph)
 }
 
-//func assertMaps(t *testing.T, got, want map[string]int)
+func testToStringMapped(t *testing.T, testData []testMappedGraph[string]) {
+	for i, test := range testData {
+		got, _ := Import(test.stringRepresentation)
+		result, err := got.ToString()
+		if err != nil {
+			t.Fatal("Error in test", i, "\n"+err.Error())
+		}
+		imported, _ := ImportStringMapped(result)
+		result2, err := imported.ToString()
+		if err != nil {
+			t.Fatal("Error in test", i, "\n"+err.Error())
+		}
+		if strings.TrimSpace(result) != strings.TrimSpace(result2) {
+			t.Fatal("Error in test", i, "\n"+result, "\n", result2)
+		}
 
-func testErrors(t *testing.T, wanterr, err error, filename string) {
+	}
+}
+
+func testErrors(t *testing.T, wanterr, err error, testIndex int) {
 	if wanterr == nil {
-		assertErrNil(t, err, filename)
+		if err != nil {
+			t.Fatal("Error should be nil;\ntest ", testIndex, "\n"+err.Error())
+		}
 		return
 	}
 	if err == nil {
 		t.Fatal("err should not be nil, want; ", wanterr.Error())
 	}
-	if err.Error() != wanterr.Error() {
-		t.Fatal("want:", wanterr.Error(),
-			"\ngot:", err.Error())
-	}
-}
-func assertErrNil(t *testing.T, err error, filename string) {
-	if err != nil {
-		t.Fatal("Error should be nil;\n", filename, "\n"+err.Error())
+	if !errors.Is(err, wanterr) {
+		t.Fatal(
+			"\nwant:", wanterr.Error(),
+			"\n got:", err.Error(),
+		)
 	}
 }
 
-func assertGraphsEqual(t *testing.T, a, b Graph) {
-	if len(a.Verticies) != len(b.Verticies) {
-		t.Fatal("Error in graph sizes a size:", len(a.Verticies), "\tb size:", len(b.Verticies))
+func assertGraphsEqual(t *testing.T, got, want Graph, i int) {
+	if len(got.vertexArcs) != len(want.vertexArcs) {
+		t.Fatal("Error in graph sizes (test", i, ") a size:", len(got.vertexArcs), ",b size:", len(want.vertexArcs))
 	}
-}
-
-func getAGraph() Graph {
-	return Graph{
-		0, false,
-		[]Vertex{
-			{0, 0, []int{-1}, map[int]int64{
-				1: 4,
-				2: 2},
-			},
-			{1, 0, []int{-1}, map[int]int64{
-				3: 2,
-				2: 3,
-				4: 3},
-			},
-			{2, 0, []int{-1}, map[int]int64{
-				1: 1,
-				3: 4,
-				4: 5},
-			},
-			{3, 0, []int{-1}, map[int]int64{}},
-			{4, 0, []int{-1}, map[int]int64{
-				3: 1},
-			},
-		},
-		priorityQueueNewShort(), //newLinkedList(),
-		map[string]int{},
-		false,
-		0, false,
-	}
-}
-
-func getBGraph() Graph {
-	return Graph{
-		0, false,
-		[]Vertex{
-			{0, 0, []int{-1}, map[int]int64{
-				1: 4,
-				2: 2},
-			},
-			{1, 0, []int{-1}, map[int]int64{
-				3: 2,
-				2: 3,
-				4: 3},
-			},
-			{2, 0, []int{-1}, map[int]int64{
-				1: 1,
-				3: 4,
-				4: 5},
-			},
-			{3, 0, []int{-1}, map[int]int64{
-				5: 10}},
-			{4, 0, []int{-1}, map[int]int64{
-				3: 1},
-			},
-			{5, 0, []int{-1}, map[int]int64{
-				3: 10},
-			},
-		},
-		priorityQueueNewShort(), //newLinkedList(),
-		map[string]int{},
-		false,
-		0, false,
-	}
-}
-
-func getBSol() BestPath {
-	return BestPath{
-		Distance: 15,
-		Path:     []int{0, 2, 1, 3, 5},
-	}
-}
-
-func getCGraph() Graph {
-	return Graph{0, false,
-		[]Vertex{
-			{0, 0, []int{-1}, map[int]int64{
-				1: -4,
-				2: 2},
-			},
-			{1, 0, []int{-1}, map[int]int64{
-				3: 2,
-				2: -3,
-				4: 3},
-			},
-			{2, 0, []int{-1}, map[int]int64{
-				1: 1,
-				3: 4,
-				4: 5},
-			},
-			{3, 0, []int{-1}, map[int]int64{
-				5: -10}},
-			{4, 0, []int{-1}, map[int]int64{
-				3: 1},
-			},
-			{5, 0, []int{-1}, map[int]int64{
-				3: -10},
-			},
-		},
-		priorityQueueNewShort(), //newLinkedList(),
-		map[string]int{},
-		false,
-		0, false,
-	}
-}
-
-func getGGraph() (Graph, map[string]int) {
-	return Graph{
-			0, false,
-			[]Vertex{
-				{0, 0, []int{-1}, map[int]int64{
-					1: 2},
-				},
-				{1, 0, []int{-1}, map[int]int64{
-					2: 5},
-				},
-				{2, 0, []int{-1}, map[int]int64{
-					0: 1,
-					1: 1},
-				},
-			},
-			priorityQueueNewShort(), //newLinkedList(),
-			map[string]int{
-				"A": 0,
-				"B": 1,
-				"C": 2,
-			},
-			false,
-			0, false,
-		}, map[string]int{
-			"A": 0,
-			"B": 1,
-			"C": 2,
+	for vi := range got.vertexArcs {
+		if !reflect.DeepEqual(got.vertexArcs[vi], want.vertexArcs[vi]) {
+			t.Fatal("Error in graph vertexArcs (test", i, "index", vi, ")\n got:", got.vertexArcs[vi], "\nwant:", want.vertexArcs[vi])
 		}
-}
-
-func getIGraph() Graph {
-	return Graph{
-		0, false,
-		[]Vertex{
-			{0, 0, []int{-1}, map[int]int64{
-				1: 2},
-			},
-			{1, 0, []int{-1}, map[int]int64{
-				2: 3},
-			},
-			{2, 0, []int{-1}, map[int]int64{
-				3: 4},
-			},
-			{3, 0, []int{-1}, map[int]int64{
-				2: 5},
-			},
-			{4, 0, []int{-1}, map[int]int64{}},
-		},
-		priorityQueueNewShort(), //newLinkedList(),
-		map[string]int{},
-		false,
-		0,
-		false,
 	}
 }
