@@ -1,14 +1,19 @@
 # dijkstra
+
 Golangs fastest Dijkstra's shortest (and longest) path calculator
 
 ## Documentation
+
 [godoc](https://godoc.org/github.com/RyanCarrier/dijkstra)
 
 ## How to
+
 ### Generate a graph
+
 #### Importing from file
 
 The package can import dijkstra files in the format:
+
 ```
 0 1,1 2,1
 1 0,1 2,2
@@ -16,11 +21,13 @@ The package can import dijkstra files in the format:
 ```
 
 using;
+
 ```go
-graph, err := dijkstra.Import("path/to/file")
+data,_:=os.ReadFile("path/to/file")
+graph, err := dijkstra.Import(string(data))
 ```
 
-i.e. node then each arc and it's weight. The default is to use nodes with numbers starting from 0, but the package will map string appropriately.
+i.e. node then each arc and it's weight. The default is to use nodes with numbers starting from 0, but the package will map string appropriately (using ImportStringMapped instead.
 
 #### Creating a graph
 
@@ -45,6 +52,7 @@ func main(){
 ### Finding paths
 
 Once the graph is created, shortest or longest paths between two points can be generated.
+
 ```go
 
 best, err := graph.Shortest(0, 2)
@@ -59,10 +67,5 @@ if err!=nil{
 }
 fmt.Println("Longest distance ", best.Distance, " following path ", best.Path)
 
-best, err := graph.ShortestSafe(0, 2)
-if err!=nil{
-  log.Fatal(err)
-}
-fmt.Println("Shortest distance with thread safety", best.Distance, " following path ", best.Path)
 
 ```

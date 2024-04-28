@@ -1,11 +1,11 @@
 package dijkstra
 
-type Vertex map[int]uint64
-
-// Graph contains all the graph details
+// Graph contains all the graph details (verticies and arcs)
 type Graph struct {
 	//slice of all verticies available
-	vertexArcs []Vertex
+	// maps need to be initialised so if vertexArcs[i] == nil then vertex i
+	// does not exist
+	vertexArcs []map[int]uint64
 }
 
 // NewGraph creates a new empty graph
@@ -15,55 +15,59 @@ func NewGraph() Graph {
 }
 
 // AddNewVertex adds a new vertex at the next available index
-func (g *Graph) AddNewEmptyVertex() (id int) {
+func (g *Graph) AddNewEmptyVertex() (index int) {
 	for i, v := range g.vertexArcs {
 		if v == nil {
 			g.vertexArcs[i] = map[int]uint64{}
 			return i
 		}
 	}
-	id = len(g.vertexArcs)
+	index = len(g.vertexArcs)
 	//only error can be id colision
-	_ = g.AddEmptyVertex(id)
-	return id
+	_ = g.AddEmptyVertex(index)
+	return index
 }
 
-// AddVertex adds a single vertex
-func (g *Graph) AddEmptyVertex(ID int) error {
-	return g.AddVertex(ID, map[int]uint64{})
+// AddVertex adds a single vertex at the specified index
+func (g *Graph) AddEmptyVertex(index int) error {
+	return g.AddVertex(index, map[int]uint64{})
 }
 
-func (g Graph) vertexOK(ID int) error {
-	if ID < 0 {
-		return newErrVertexNegative(ID)
+func (g Graph) vertexOK(index int) error {
+	if index < 0 {
+		return newErrVertexNegative(index)
 	}
 	return nil
 }
 
-func (g Graph) vertexExists(ID int) error {
-	if ID >= len(g.vertexArcs) ||
-		g.vertexArcs[ID] == nil {
-		return newErrVertexNotFound(ID)
+func (g Graph) vertexExists(index int) error {
+	if index >= len(g.vertexArcs) ||
+		g.vertexArcs[index] == nil {
+		return newErrVertexNotFound(index)
 	}
 	return nil
 }
-
-func (g Graph) vertexValid(ID int) error {
-	if err := g.vertexOK(ID); err != nil {
+func (g Graph) vertexAvailable(index int) error {
+	if err := g.vertexOK(index); err != nil {
 		return err
 	}
-	if err := g.vertexExists(ID); err != nil {
+	if index < len(g.vertexArcs) && g.vertexArcs[index] != nil {
+		return newErrVertexAlreadyExists(index)
+	}
+	return nil
+}
+
+func (g Graph) vertexValid(index int) error {
+	if err := g.vertexOK(index); err != nil {
+		return err
+	}
+	if err := g.vertexExists(index); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (g Graph) GetArcs(src int) (map[int]uint64, error) {
-	if err := g.vertexValid(src); err != nil {
-		return nil, err
-	}
-	return g.vertexArcs[src], nil
-}
+// GetArc gets the arc distance from src to dest
 func (g Graph) GetArc(src, dest int) (uint64, error) {
 	err := g.vertexValid(src)
 	if err != nil {
@@ -80,75 +84,131 @@ func (g Graph) GetArc(src, dest int) (uint64, error) {
 	return got, nil
 }
 
-// AddVertex adds a single vertex
-func (g *Graph) AddVertex(ID int, vertex Vertex) error {
-	if err := g.vertexOK(ID); err != nil {
+// AddVertex adds a vertex with specified arcs, if the destination of an arc
+// does not exist, it will error. If arc destinations should be added, use
+// AddVertexAndArcs instead
+func (g *Graph) AddVertex(index int, vertexArcs map[int]uint64) error {
+	if err := g.vertexAvailable(index); err != nil {
 		return err
 	}
-	if ID < len(g.vertexArcs) && g.vertexArcs[ID] != nil {
-		return newErrVertexAlreadyExists(ID)
-	}
-	for to := range vertex {
+	for to := range vertexArcs {
 		if err := g.vertexOK(to); err != nil {
 			return err
 		}
 		if err := g.vertexExists(to); err != nil {
-			return newErrArcNotFound(ID, to)
+			return newErrArcNotFound(index, to)
 		}
 	}
-	if ID >= len(g.vertexArcs) {
-		if ID == len(g.vertexArcs) {
-			g.vertexArcs = append(g.vertexArcs, vertex)
-		} else {
-			g.vertexArcs = append(g.vertexArcs, make([]Vertex, ID-len(g.vertexArcs)+1)...)
-		}
-	}
-	g.vertexArcs[ID] = vertex
-	return nil
-}
-func (g *Graph) AddArc(from, to int, distance uint64) error {
-	if from >= len(g.vertexArcs) || g.vertexArcs[from] == nil {
-		return newErrVertexNotFound(from)
-	}
-	if from < 0 {
-		return newErrVertexNegative(from)
-	}
-	if to >= len(g.vertexArcs) || g.vertexArcs[to] == nil {
-		return newErrVertexNotFound(to)
-	}
-	if to < 0 {
-		return newErrVertexNegative(to)
-	}
-	g.vertexArcs[from][to] = distance
-	return nil
-}
-func (g *Graph) RemoveArc(from, to int) error {
-	if from >= len(g.vertexArcs) || g.vertexArcs[from] == nil {
-		return newErrVertexNotFound(from)
-	}
-	if from < 0 {
-		return newErrVertexNegative(from)
-	}
-	if to >= len(g.vertexArcs) || g.vertexArcs[to] == nil {
-		return newErrVertexNotFound(to)
-	}
-	if to < 0 {
-		return newErrVertexNegative(to)
-	}
-	if _, ok := g.vertexArcs[from][to]; !ok {
-		return newErrArcNotFound(from, to)
-	}
-	delete(g.vertexArcs[from], to)
+	g.addVertex(index, vertexArcs)
 	return nil
 }
 
-// GetVertex gets the reference of the specified vertex. An error is thrown if
-// there is no vertex with that index/ID.
-func (g *Graph) GetVertex(ID int) (Vertex, error) {
-	if ID >= len(g.vertexArcs) {
-		return nil, newErrVertexNotFound(ID)
+// AddVertexAndArcs adds a vertex with specified arcs, if the destination of an
+// arc does not exist, it will be added.
+func (g *Graph) AddVertexAndArcs(index int, vertexArcs map[int]uint64) error {
+	var err error
+	if err = g.vertexAvailable(index); err != nil {
+		return err
 	}
-	return g.vertexArcs[ID], nil
+	for to := range vertexArcs {
+		if err = g.vertexOK(to); err != nil {
+			return err
+		}
+		if err = g.vertexExists(to); err != nil {
+			if err = g.AddEmptyVertex(to); err != nil {
+				return err
+			}
+		}
+	}
+	g.addVertex(index, vertexArcs)
+	return nil
+}
+func (g *Graph) addVertex(index int, vertexArcs map[int]uint64) {
+	if index >= len(g.vertexArcs) {
+		if index == len(g.vertexArcs) {
+			g.vertexArcs = append(g.vertexArcs, vertexArcs)
+		} else {
+			g.vertexArcs = append(g.vertexArcs, make([]map[int]uint64, index-len(g.vertexArcs)+1)...)
+		}
+	}
+	g.vertexArcs[index] = vertexArcs
+}
+
+// AddArc adds an arc from src to dest with the specified distance
+// will error if the arc already exists (remove then add)
+func (g *Graph) AddArc(src, dest int, distance uint64) error {
+	if src >= len(g.vertexArcs) || g.vertexArcs[src] == nil {
+		return newErrVertexNotFound(src)
+	}
+	if src < 0 {
+		return newErrVertexNegative(src)
+	}
+	if dest >= len(g.vertexArcs) || g.vertexArcs[dest] == nil {
+		return newErrVertexNotFound(dest)
+	}
+	if dest < 0 {
+		return newErrVertexNegative(dest)
+	}
+	g.vertexArcs[src][dest] = distance
+	return nil
+}
+
+// RemoveArc removes the arc from src to dest
+func (g *Graph) RemoveArc(src, dest int) error {
+	if src >= len(g.vertexArcs) || g.vertexArcs[src] == nil {
+		return newErrVertexNotFound(src)
+	}
+	if src < 0 {
+		return newErrVertexNegative(src)
+	}
+	if dest >= len(g.vertexArcs) || g.vertexArcs[dest] == nil {
+		return newErrVertexNotFound(dest)
+	}
+	if dest < 0 {
+		return newErrVertexNegative(dest)
+	}
+	if _, ok := g.vertexArcs[src][dest]; !ok {
+		return newErrArcNotFound(src, dest)
+	}
+	delete(g.vertexArcs[src], dest)
+	return nil
+}
+
+// GetVertexArcs gets all the arcs from vertex index
+func (g Graph) GetVertexArcs(index int) (map[int]uint64, error) {
+	if err := g.vertexValid(index); err != nil {
+		return nil, err
+	}
+	return g.vertexArcs[index], nil
+}
+
+// RemoveVertexAndArcs removes the vertex at index and all arcs pointing to it
+func (g *Graph) RemoveVertexAndArcs(index int) error {
+	if err := g.vertexValid(index); err != nil {
+		return err
+	}
+	for i := range g.vertexArcs {
+		delete(g.vertexArcs[i], index)
+	}
+	g.vertexArcs[index] = nil
+	return nil
+}
+
+// RemoveVertex removes the vertex at index, fails if there are still
+// arcs pointing to the vertex. To remove all arcs also, use RemoveVertexAndArcs
+func (g *Graph) RemoveVertex(index int) error {
+	if err := g.vertexValid(index); err != nil {
+		return err
+	}
+	for i, v := range g.vertexArcs {
+		for to := range v {
+			if to == index {
+				return newArcHanging(i, index)
+			}
+		}
+	}
+	g.vertexArcs[index] = nil
+	return nil
 }
 
 func (g Graph) validate() error {

@@ -12,12 +12,12 @@ import (
 func TestErrors(t *testing.T) {
 	t.Run("ErrNoPath", func(t *testing.T) {
 		graph := Graph{
-			[]Vertex{
-				map[int]uint64{1: 2},
-				map[int]uint64{2: 3},
-				map[int]uint64{3: 4},
-				map[int]uint64{2: 5},
-				map[int]uint64{},
+			[]map[int]uint64{
+				{1: 2},
+				{2: 3},
+				{3: 4},
+				{2: 5},
+				{},
 			},
 		}
 		_, err := graph.Shortest(0, 4)
@@ -27,11 +27,11 @@ func TestErrors(t *testing.T) {
 	})
 	t.Run("ErrLoop", func(t *testing.T) {
 		graph := Graph{
-			[]Vertex{
-				map[int]uint64{1: 1, 2: 0},
-				map[int]uint64{2: 5},
-				map[int]uint64{1: 10, 3: 10},
-				map[int]uint64{},
+			[]map[int]uint64{
+				{1: 1, 2: 0},
+				{2: 5},
+				{1: 10, 3: 10},
+				{},
 			},
 		}
 		_, err := graph.Longest(0, 3)
@@ -237,11 +237,11 @@ func TestCorrect(t *testing.T) {
 				for i, test := range tests {
 					t.Run([]string{"Shortest", "Longest"}[i], func(t *testing.T) {
 						if err != nil {
-							str, _ := test.graph.ToString()
+							str, _ := test.graph.Export()
 							t.Errorf("Run had error: %v\nfrom, to = %d, %d\n%s", err, from, to, str)
 						}
 						if test.result.Distance != test.expected.Distance {
-							str, _ := test.graph.ToString()
+							str, _ := test.graph.Export()
 							t.Errorf("Run had incorrect distance;(%d->%d)\n\texpected:%d\n\tgot:%d\n%s",
 								from, to, test.expected.Distance, test.result.Distance, str)
 						}
@@ -407,7 +407,7 @@ var testGraphsCorrect = []testGraph{
 4 3,1
 5 3,10`,
 		Graph{
-			[]Vertex{
+			[]map[int]uint64{
 				{1: 4, 2: 2},
 				{3: 2, 4: 3},
 				{1: 1, 3: 4, 4: 4},
@@ -428,7 +428,7 @@ var testGraphsCorrect = []testGraph{
 3 2,10 4,1
 4`,
 		Graph{
-			[]Vertex{
+			[]map[int]uint64{
 				{1: 10, 2: 1, 3: 1},
 				{2: 1, 3: 1},
 				{4: 10},
@@ -454,7 +454,7 @@ E D,1
 F D,10`,
 		MappedGraph[string]{
 			graph: Graph{
-				[]Vertex{
+				[]map[int]uint64{
 					{1: 4, 2: 2},
 					{3: 2, 2: 3, 4: 3},
 					{1: 1, 3: 4, 4: 5},
@@ -484,7 +484,7 @@ D C,10 E,1
 E`,
 		MappedGraph[string]{
 			graph: Graph{
-				[]Vertex{
+				[]map[int]uint64{
 					{1: 1, 2: 1, 3: 10},
 					{4: 10},
 					{1: 10, 4: 1},

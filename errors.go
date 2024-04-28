@@ -14,6 +14,7 @@ var ErrVertexNegative = errors.New("vertex is negative")
 var ErrArcNotFound = errors.New("arc not found")
 var ErrGraphNotValid = errors.New("graph is not valid")
 var ErrMapNotFound = errors.New("mapping error, can not find mapped vertex")
+var ErrArcHanging = errors.New("arc will be left hanging")
 
 // not found/item validity
 func newErrMapNotFound(a int) error {
@@ -28,8 +29,11 @@ func newErrVertexNegative(a int) error {
 func newErrVertexAlreadyExists(a int) error {
 	return fmt.Errorf("%d %w", a, ErrVertexAlreadyExists)
 }
-func newErrArcNotFound(a, b int) error {
-	return fmt.Errorf("%d->%d %w", a, b, ErrArcNotFound)
+func newErrArcNotFound[T comparable](a, b T) error {
+	return fmt.Errorf("%v->%v %w", a, b, ErrArcNotFound)
+}
+func newArcHanging[T comparable](a, b T) error {
+	return fmt.Errorf("removing %v; %v->%v %w", b, a, b, ErrArcHanging)
 }
 
 // graph issues

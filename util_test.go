@@ -130,7 +130,7 @@ func TestToString(t *testing.T) {
 func testToString(t *testing.T, testData []testGraph) {
 	for i, test := range testData {
 		got, _ := Import(test.stringRepresentation)
-		result, err := got.ToString()
+		result, err := got.Export()
 		if err != nil {
 			t.Fatal("Error in test", i, "\n"+err.Error())
 		}
@@ -142,12 +142,12 @@ func testToString(t *testing.T, testData []testGraph) {
 func testToStringMapped(t *testing.T, testData []testMappedGraph[string]) {
 	for i, test := range testData {
 		got, _ := Import(test.stringRepresentation)
-		result, err := got.ToString()
+		result, err := got.Export()
 		if err != nil {
 			t.Fatal("Error in test", i, "\n"+err.Error())
 		}
 		imported, _ := ImportStringMapped(result)
-		result2, err := imported.ToString()
+		result2, err := imported.Export()
 		if err != nil {
 			t.Fatal("Error in test", i, "\n"+err.Error())
 		}

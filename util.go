@@ -12,7 +12,6 @@ func Import(data string) (g Graph, err error) {
 	var i int
 	var arc int
 	var dist uint64
-
 	input := strings.TrimSpace(string(data))
 	for _, line := range strings.Split(input, "\n") {
 		f := strings.Fields(strings.TrimSpace(line))
@@ -25,7 +24,7 @@ func Import(data string) (g Graph, err error) {
 			return g, err
 		}
 		if temp := len(g.vertexArcs); temp <= i { //Extend if we have to
-			g.vertexArcs = append(g.vertexArcs, make([]Vertex, 1+i-len(g.vertexArcs))...)
+			g.vertexArcs = append(g.vertexArcs, make([]map[int]uint64, 1+i-len(g.vertexArcs))...)
 			for ; temp < len(g.vertexArcs); temp++ {
 				g.vertexArcs[temp] = map[int]uint64{}
 			}
@@ -54,6 +53,7 @@ func Import(data string) (g Graph, err error) {
 	}
 	return g, g.validate()
 }
+
 func ImportStringMapped(data string) (mg MappedGraph[string], err error) {
 	var lowestIndex int
 	var i int
@@ -76,7 +76,7 @@ func ImportStringMapped(data string) (mg MappedGraph[string], err error) {
 		}
 
 		if temp := len(mg.graph.vertexArcs); temp <= i { //Extend if we have to
-			mg.graph.vertexArcs = append(mg.graph.vertexArcs, make([]Vertex, 1+i-len(mg.graph.vertexArcs))...)
+			mg.graph.vertexArcs = append(mg.graph.vertexArcs, make([]map[int]uint64, 1+i-len(mg.graph.vertexArcs))...)
 			for ; temp < len(mg.graph.vertexArcs); temp++ {
 				mg.graph.vertexArcs[temp] = map[int]uint64{}
 			}
@@ -111,7 +111,7 @@ func ImportStringMapped(data string) (mg MappedGraph[string], err error) {
 	return
 }
 
-func (g Graph) ToString() (string, error) {
+func (g Graph) Export() (string, error) {
 	var result = strings.Builder{}
 	for id, v := range g.vertexArcs {
 		result.WriteString(strconv.Itoa(id))
@@ -122,7 +122,7 @@ func (g Graph) ToString() (string, error) {
 	}
 	return result.String(), nil
 }
-func (mg MappedGraph[T]) ToString() (string, error) {
+func (mg MappedGraph[T]) Export() (string, error) {
 	var err error
 	var result = strings.Builder{}
 	for k, v := range mg.mapping {

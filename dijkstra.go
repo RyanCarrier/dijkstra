@@ -44,35 +44,37 @@ const (
 )
 
 // Shortest calculates the shortest path from src to dest
-func (g *Graph) Shortest(src, dest int) (BestPath[int], error) {
+func (g Graph) Shortest(src, dest int) (BestPath[int], error) {
 	return g.evaluate(src, dest, true, listShortAuto)
 }
 
 // Longest calculates the longest path from src to dest
-func (g *Graph) Longest(src, dest int) (BestPath[int], error) {
+func (g Graph) Longest(src, dest int) (BestPath[int], error) {
 	return g.evaluate(src, dest, false, listLongAuto)
 }
 
 // ShortestAll calculates all of the longest paths from src to dest
-func (g *Graph) ShortestAll(src, dest int) (BestPaths[int], error) {
+func (g Graph) ShortestAll(src, dest int) (BestPaths[int], error) {
 	return g.evaluateAll(src, dest, true, listShortAuto)
 }
 
 // LongestAll calculates all of the longest paths from src to dest
-func (g *Graph) LongestAll(src, dest int) (BestPaths[int], error) {
+func (g Graph) LongestAll(src, dest int) (BestPaths[int], error) {
 	return g.evaluateAll(src, dest, false, listLongAuto)
 }
 
-func (g *Graph) getList(i int) dijkstraList {
+func (g Graph) getList(i int) dijkstraList {
 	switch i {
 	case listShortAuto:
-		if len(g.vertexArcs) < 800 {
+		//LL seems to be faster for less than 100 verticies
+		if len(g.vertexArcs) < 100 {
 			return g.getList(listShortLL)
 		} else {
 			return g.getList(listShortPQ)
 		}
 	case listLongAuto:
-		if len(g.vertexArcs) < 800 {
+		//LL seems to be faster for less than 100 verticies
+		if len(g.vertexArcs) < 100 {
 			return g.getList(listLongLL)
 		} else {
 			return g.getList(listLongPQ)
@@ -90,7 +92,7 @@ func (g *Graph) getList(i int) dijkstraList {
 	}
 }
 
-func (g *Graph) evaluate(src, dest int, shortest bool, listOption int) (BestPath[int], error) {
+func (g Graph) evaluate(src, dest int, shortest bool, listOption int) (BestPath[int], error) {
 	if err := g.vertexValid(src); err != nil {
 		return BestPath[int]{}, err
 	}
@@ -230,6 +232,7 @@ func (g *Graph) evaluateAll(src, dest int, shortest bool, listOption int) (BestP
 		Paths:    bestPaths(bestVerticies, src, dest),
 	}, nil
 }
+
 func bestPaths(bestVerticies [][]int, src, dest int) [][]int {
 	paths := visitPath(bestVerticies, src, dest, dest)
 	best := [][]int{}
