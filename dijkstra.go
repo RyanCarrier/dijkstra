@@ -163,7 +163,7 @@ func (g Graph) evaluate(src, dest int, shortest bool, listOption int) (BestPath[
 	return BestPath[int]{distances[dest], path}, nil
 }
 
-func (g *Graph) evaluateAll(src, dest int, shortest bool, listOption int) (BestPaths[int], error) {
+func (g Graph) evaluateAll(src, dest int, shortest bool, listOption int) (BestPaths[int], error) {
 	if err := g.vertexValid(src); err != nil {
 		return BestPaths[int]{}, err
 	}
@@ -213,7 +213,7 @@ func (g *Graph) evaluateAll(src, dest int, shortest bool, listOption int) (BestP
 					bestVerticies[to] = append(bestVerticies[to], current.id)
 				} else {
 					distances[to] = current.distance + dist
-					bestVerticies[to][0] = current.id
+					bestVerticies[to] = []int{current.id}
 					if to == dest {
 						visitedDest = true
 						best = distances[to]

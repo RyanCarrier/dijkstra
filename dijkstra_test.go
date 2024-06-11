@@ -100,7 +100,21 @@ func TestCorrect(t *testing.T) {
 				t.Run("Longest", func(t *testing.T) {
 					got, err := test.graph.LongestAll(test.from, test.to)
 					testErrors(t, test.evalErr, err, i)
-					testResults(t, test.longestSolution, got.SmallestPath(), true, i)
+					testResults(t, test.longestSolution, got.SmallestPath(), false, i)
+				})
+			})
+		}
+		for i, test := range testGraphsCorrectAll {
+			t.Run(strconv.Itoa(i), func(t *testing.T) {
+				t.Run("Shortest", func(t *testing.T) {
+					got, err := test.graph.ShortestAll(test.from, test.to)
+					testErrors(t, test.evalErr, err, i)
+					testResultsAll(t, test.shortestSolution, got, true, i)
+				})
+				t.Run("Longest", func(t *testing.T) {
+					got, err := test.graph.LongestAll(test.from, test.to)
+					testErrors(t, test.evalErr, err, i)
+					testResultsAll(t, test.longestSolution, got, false, i)
 				})
 			})
 		}
@@ -361,6 +375,33 @@ func BenchmarkAll(b *testing.B) {
 		})
 	}
 }
+func testResultsAll(t *testing.T, expected, got BestPaths[int], shortest bool, testIndex int) {
+	distmethod := "Shortest"
+	if !shortest {
+		distmethod = "Longest"
+	}
+	err := func(label string) {
+		t.Errorf("%s %s\ntest %d\n got dist:%d\nwant dist:%d\n got path:%v\nwant path:%v", distmethod, label, testIndex, got.Distance, expected.Distance, got, expected)
+	}
+	if got.Distance != expected.Distance {
+		err("distance incorrect")
+	}
+	for _, path := range got.Paths {
+		if !slices.ContainsFunc(expected.Paths, func(a []int) bool {
+			if len(a) != len(path) {
+				return false
+			}
+			for j := range len(a) {
+				if a[j] != path[j] {
+					return false
+				}
+			}
+			return true
+		}) {
+			err("Missing expected path in result")
+		}
+	}
+}
 
 func testResults(t *testing.T, expected, got BestPath[int], shortest bool, testIndex int) {
 	distmethod := "Shortest"
@@ -384,6 +425,16 @@ type testGraph struct {
 	to                   int
 	shortestSolution     BestPath[int]
 	longestSolution      BestPath[int]
+	importErr            error
+	evalErr              error
+}
+type testGraphAll struct {
+	stringRepresentation string
+	graph                Graph
+	from                 int
+	to                   int
+	shortestSolution     BestPaths[int]
+	longestSolution      BestPaths[int]
 	importErr            error
 	evalErr              error
 }
@@ -440,6 +491,61 @@ var testGraphsCorrect = []testGraph{
 		BestPath[int]{2, []int{0, 3, 4}},
 		//0 1 2 4
 		BestPath[int]{31, []int{0, 1, 3, 2, 4}},
+		nil, nil,
+	},
+}
+var testGraphsCorrectAll = []testGraphAll{
+	{
+		`0 1,1 2,1
+1 3,0
+2 3,0
+3`,
+		Graph{
+			[]map[int]uint64{
+				{1: 1, 2: 1},
+				{3: 0},
+				{3: 0},
+				{},
+			},
+		},
+		0, 3,
+		BestPaths[int]{1, [][]int{
+			{0, 2, 3},
+			{0, 1, 3},
+		}},
+		BestPaths[int]{1, [][]int{
+			{0, 2, 3},
+			{0, 1, 3},
+		}},
+		nil, nil,
+	},
+	{
+		`0 1,1 3,1
+1 2,1 4,1
+2 5,1
+3 4,1
+4 2,1 5,1
+5`,
+		Graph{
+			[]map[int]uint64{
+				{1: 1, 3: 1},
+				{2: 1, 4: 1},
+				{5: 1},
+				{4: 1},
+				{2: 1, 5: 1},
+				{},
+			},
+		},
+		0, 5,
+		BestPaths[int]{3, [][]int{
+			{0, 3, 4, 5},
+			{0, 1, 2, 5},
+			{0, 1, 4, 5},
+		}},
+		BestPaths[int]{4, [][]int{
+			{0, 3, 4, 2, 5},
+			{0, 1, 4, 2, 5},
+		}},
 		nil, nil,
 	},
 }
