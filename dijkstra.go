@@ -4,6 +4,15 @@ import (
 	"math"
 )
 
+const (
+	listShortAuto = iota
+	listLongAuto
+	listShortPQ
+	listLongPQ
+	listShortLL
+	listLongLL
+)
+
 // BestPath contains the solution of the most optimal path
 type BestPath struct {
 	Distance int64
@@ -12,70 +21,36 @@ type BestPath struct {
 
 // Shortest calculates the shortest path from src to dest
 func (g *Graph) Shortest(src, dest int) (BestPath, error) {
-	return g.evaluate(src, dest, true)
+	return g.evaluate(src, dest, true, listShortAuto)
 }
 
 // Longest calculates the longest path from src to dest
 func (g *Graph) Longest(src, dest int) (BestPath, error) {
-	return g.evaluate(src, dest, false)
+	return g.evaluate(src, dest, false, listLongAuto)
 }
 
-func (g *Graph) setup(shortest bool, src int, list int) {
-	//-1 auto list
-	//Get a new list regardless
-	if list >= 0 {
-		g.forceList(list)
-	} else if shortest {
-		g.forceList(-1)
-	} else {
-		g.forceList(-2)
-	}
-	//Reset state
-	g.visitedDest = false
-	//Reset the best current value (worst so it gets overwritten)
-	// and set the defaults *almost* as bad
-	// set all best verticies to -1 (unused)
-	if shortest {
-		g.setDefaults(int64(math.MaxInt64)-2, -1)
-		g.best = int64(math.MaxInt64)
-	} else {
-		g.setDefaults(int64(math.MinInt64)+2, -1)
-		g.best = int64(math.MinInt64)
-	}
-	//Set the distance of initial vertex 0
-	g.Verticies[src].distance = 0
-	//Add the source vertex to the list
-	g.visiting.PushOrdered(&g.Verticies[src])
-}
-
-func (g *Graph) forceList(i int) {
-	//-2 long auto
-	//-1 short auto
-	//0 short pq
-	//1 long pq
-	//2 short ll
-	//3 long ll
+func (g *Graph) forceList(i int) dijkstraList {
 	switch i {
-	case -2:
-		if len(g.Verticies) < 800 {
-			g.forceList(2)
-		} else {
-			g.forceList(0)
+	case listShortAuto:
+		//LL seems to be faster for less than 100 verticies
+		if len(g.Verticies) < 100 {
+			return g.forceList(listShortLL)
 		}
-	case -1:
-		if len(g.Verticies) < 800 {
-			g.forceList(3)
-		} else {
-			g.forceList(1)
+		return g.forceList(listShortPQ)
+	case listLongAuto:
+		//LL seems to be faster for less than 100 verticies
+		if len(g.Verticies) < 100 {
+			return g.forceList(listLongLL)
 		}
-	case 0:
-		g.visiting = priorityQueueNewShort()
-	case 1:
-		g.visiting = priorityQueueNewLong()
-	case 2:
-		g.visiting = linkedListNewShort()
-	case 3:
-		g.visiting = linkedListNewLong()
+		return g.forceList(listLongPQ)
+	case listShortPQ:
+		return priorityQueueNewShort()
+	case listLongPQ:
+		return priorityQueueNewLong()
+	case listShortLL:
+		return linkedListNewShort()
+	case listLongLL:
+		return linkedListNewLong()
 	default:
 		panic(i)
 	}
@@ -93,97 +68,85 @@ func (g *Graph) bestPath(src, dest int) BestPath {
 	return BestPath{g.Verticies[dest].distance, path}
 }
 
-func (g *Graph) evaluate(src, dest int, shortest bool) (BestPath, error) {
-	if g.running {
-		return BestPath{}, ErrAlreadyCalculating
-	}
-	g.running = true
-	defer func() { g.running = false }()
-	//Setup graph
-	g.setup(shortest, src, -1)
-	return g.postSetupEvaluate(src, dest, shortest)
+func (g *Graph) evaluate(src, dest int, shortest bool, listOption int) (BestPath, error) {
+	return g.evaluateSafe(src, dest, shortest, listOption)
 }
 
 // ShortestSafe calculates the shortest path from src to dest with thread safety
 //
 //	(slightly slower than regular Shortest)
 func (g *Graph) ShortestSafe(src, dest int) (BestPath, error) {
-	return g.evaluate(src, dest, true)
+	return g.evaluateSafe(src, dest, true, listShortAuto)
 }
 
 // LongestSafe calculates the longest path from src to dest with thread safety
 //
 //	(slightly slower than regular Longest)
 func (g *Graph) LongestSafe(src, dest int) (BestPath, error) {
-	return g.evaluate(src, dest, false)
+	return g.evaluateSafe(src, dest, false, listLongAuto)
 }
 
-func (g *Graph) evaluateSafe(src, dest int, shortest bool) (BestPath, error) {
-	var current *Vertex
-	var best int64
-	var newDefault int64
-	var visiting dijkstraList
-	visitedDest := false
-	oldCurrent := -1
-	verticies := make([]Vertex, len(g.Verticies))
-	copy(verticies, g.Verticies)
-	if shortest {
-		if len(verticies) < 800 {
-			visiting = linkedListNewLong()
-		} else {
-			visiting = priorityQueueNewLong()
-		}
-		newDefault = int64(math.MaxInt64) - 2
-		best = int64(math.MaxInt64)
-	} else {
-		if len(verticies) < 800 {
-			visiting = linkedListNewShort()
-		} else {
-			visiting = priorityQueueNewShort()
-		}
-		newDefault = int64(math.MinInt64) + 2
-		best = int64(math.MinInt64)
+func (g Graph) vertexValid(v int) error {
+	if v >= len(g.Verticies) {
+		return newErrVertexNotFound(v)
 	}
-	for i := range verticies {
-		verticies[i].bestVerticies = []int{-1}
-		verticies[i].distance = newDefault
-	}
-	verticies[src].distance = 0
-	visiting.PushOrdered(&verticies[src])
+	return nil
+}
 
+type currentDistance struct {
+	id       int
+	distance int64
+}
+
+func (g *Graph) evaluateSafe(src, dest int, shortest bool, listOption int) (BestPath, error) {
+	var current currentDistance
+	visitedDest := false
+	var newDefault int64
+	var best int64
+	var better = func(a, b int64) bool {
+		return a >= b
+	}
+	var shouldSkip = func(currentDistance, best, storedDistance int64) bool {
+		return currentDistance < storedDistance
+	}
+	if shortest {
+		newDefault = math.MaxInt64
+		best = math.MaxInt64
+		better = func(a, b int64) bool {
+			return a < b
+		}
+		shouldSkip = func(currentDistance, best, storedDistance int64) bool {
+			return currentDistance >= best || currentDistance > storedDistance
+		}
+	}
+	var visiting = g.forceList(listOption)
+	distances := make([]int64, len(g.Verticies))
+	bestVerticie := make([]int, len(g.Verticies))
+	for i := range bestVerticie {
+		bestVerticie[i] = -1
+		distances[i] = newDefault
+	}
+	distances[src] = 0
+	initial := currentDistance{src, distances[src]}
+	visiting.PushOrdered(initial)
 	for visiting.Len() > 0 {
-		//Visit the current lowest distanced Vertex
-		//TODO WTF
 		current = visiting.PopOrdered()
-		if oldCurrent == current.ID {
+		if shouldSkip(current.distance, best, distances[current.id]) {
 			continue
 		}
-		oldCurrent = current.ID
-		//If the current distance is already worse than the best try another Vertex
-		if shortest && current.distance >= best {
-			continue
-		}
-		for v, dist := range current.arcs {
-			//If the arc has better access, than the current best, update the Vertex being touched
-			if (shortest && current.distance+dist < verticies[v].distance) ||
-				(!shortest && current.distance+dist > verticies[v].distance) {
-				if current.bestVerticies[0] == v && verticies[v].ID != dest {
-					//also only do this if we aren't checkout out the best distance again
-					//This seems familiar 8^)
-					return BestPath{}, newErrLoop(current.ID, v)
+		for to, dist := range g.Verticies[current.id].arcs {
+			if better(current.distance+dist, distances[to]) {
+				if bestVerticie[current.id] == to && to != dest {
+					return BestPath{}, newErrLoop(current.id, to)
 				}
-				verticies[v].distance = current.distance + dist
-				verticies[v].bestVerticies[0] = current.ID
-				if v == dest {
-					//If this is the destination update best, so we can stop looking at
-					// useless Verticies
-					best = current.distance + dist
+				distances[to] = current.distance + dist
+				bestVerticie[to] = current.id
+				if to == dest {
 					visitedDest = true
+					best = distances[to]
 					continue // Do not push if dest
 				}
-				//Push this updated Vertex into the list to be evaluated, pushes in
-				// sorted form
-				visiting.PushOrdered(&verticies[v])
+				visiting.PushOrdered(currentDistance{to, distances[to]})
 			}
 		}
 	}
@@ -191,60 +154,12 @@ func (g *Graph) evaluateSafe(src, dest int, shortest bool) (BestPath, error) {
 		return BestPath{}, ErrNoPath
 	}
 	var path []int
-	for c := verticies[dest]; c.ID != src; c = verticies[c.bestVerticies[0]] {
-		path = append(path, c.ID)
+	for c := dest; c != src; c = bestVerticie[c] {
+		path = append(path, c)
 	}
 	path = append(path, src)
 	for i, j := 0, len(path)-1; i < j; i, j = i+1, j-1 {
 		path[i], path[j] = path[j], path[i]
 	}
-	return BestPath{verticies[dest].distance, path}, nil
-}
-func (g *Graph) postSetupEvaluate(src, dest int, shortest bool) (BestPath, error) {
-	var current *Vertex
-	oldCurrent := -1
-	for g.visiting.Len() > 0 {
-		//Visit the current lowest distanced Vertex
-		//TODO WTF
-		current = g.visiting.PopOrdered()
-		if oldCurrent == current.ID {
-			continue
-		}
-		oldCurrent = current.ID
-		//If the current distance is already worse than the best try another Vertex
-		if shortest && current.distance >= g.best {
-			continue
-		}
-		for v, dist := range current.arcs {
-			//If the arc has better access, than the current best, update the Vertex being touched
-			if (shortest && current.distance+dist < g.Verticies[v].distance) ||
-				(!shortest && current.distance+dist > g.Verticies[v].distance) {
-				if current.bestVerticies[0] == v && g.Verticies[v].ID != dest {
-					//also only do this if we aren't checkout out the best distance again
-					//This seems familiar 8^)
-					return BestPath{}, newErrLoop(current.ID, v)
-				}
-				g.Verticies[v].distance = current.distance + dist
-				g.Verticies[v].bestVerticies[0] = current.ID
-				if v == dest {
-					//If this is the destination update best, so we can stop looking at
-					// useless Verticies
-					g.best = current.distance + dist
-					g.visitedDest = true
-					continue // Do not push if dest
-				}
-				//Push this updated Vertex into the list to be evaluated, pushes in
-				// sorted form
-				g.visiting.PushOrdered(&g.Verticies[v])
-			}
-		}
-	}
-	return g.finally(src, dest)
-}
-
-func (g *Graph) finally(src, dest int) (BestPath, error) {
-	if !g.visitedDest {
-		return BestPath{}, ErrNoPath
-	}
-	return g.bestPath(src, dest), nil
+	return BestPath{distances[dest], path}, nil
 }

@@ -1,104 +1,123 @@
 package dijkstra
 
-//BestPaths contains the list of best solutions
+import "math"
+
+// BestPaths contains the list of best solutions
 type BestPaths []BestPath
 
-//ShortestAll calculates all of the shortest paths from src to dest
+// ShortestAll calculates all of the shortest paths from src to dest
 func (g *Graph) ShortestAll(src, dest int) (BestPaths, error) {
-	return g.evaluateAll(src, dest, true)
+	return g.evaluateAll(src, dest, true, listShortAuto)
 }
 
-//LongestAll calculates all the longest paths from src to dest
+// LongestAll calculates all the longest paths from src to dest
 func (g *Graph) LongestAll(src, dest int) (BestPaths, error) {
-	return g.evaluateAll(src, dest, false)
+	return g.evaluateAll(src, dest, false, listLongAuto)
 }
 
-func (g *Graph) evaluateAll(src, dest int, shortest bool) (BestPaths, error) {
-	if g.running {
-		return BestPaths{}, ErrAlreadyCalculating
+func (g *Graph) evaluateAll(src, dest int, shortest bool, listOption int) (BestPaths, error) {
+	return g.postSetupEvaluateAll(src, dest, shortest, listOption)
+}
+
+func (g *Graph) postSetupEvaluateAll(src, dest int, shortest bool, listOption int) (BestPaths, error) {
+	// if err := g.vertexValid(src); err != nil {
+	// 	return BestPaths{}, err
+	// }
+	// if err := g.vertexValid(dest); err != nil {
+	// 	return BestPaths{}, err
+	// }
+	var current currentDistance
+	visitedDest := false
+	var newDefault int64
+	var best int64
+	var better = func(a, b int64) bool {
+		return a >= b
 	}
-	g.running = true
-	defer func() { g.running = false }()
-	//Setup graph
-	g.setup(shortest, src, -1)
-	return g.postSetupEvaluateAll(src, dest, shortest)
-}
-
-func (g *Graph) postSetupEvaluateAll(src, dest int, shortest bool) (BestPaths, error) {
-	var current *Vertex
-	oldCurrent := -1
-	for g.visiting.Len() > 0 {
-		//Visit the current lowest distanced Vertex
-		current = g.visiting.PopOrdered()
-		if oldCurrent == current.ID {
+	var shouldSkip = func(currentDistance, best, storedDistance int64) bool {
+		return currentDistance < storedDistance
+	}
+	if shortest {
+		newDefault = math.MaxInt64
+		best = math.MaxInt64
+		better = func(a, b int64) bool {
+			return a <= b
+		}
+		shouldSkip = func(currentDistance, best, storedDistance int64) bool {
+			return currentDistance > best || currentDistance > storedDistance
+		}
+	}
+	var visiting = g.forceList(listOption)
+	distances := make([]int64, len(g.Verticies))
+	bestVerticies := make([][]int, len(g.Verticies))
+	for i := range bestVerticies {
+		bestVerticies[i] = []int{-1}
+		distances[i] = newDefault
+	}
+	distances[src] = 0
+	visiting.PushOrdered(currentDistance{src, distances[src]})
+	for visiting.Len() > 0 {
+		current = visiting.PopOrdered()
+		if shouldSkip(current.distance, best, distances[current.id]) {
 			continue
 		}
-		oldCurrent = current.ID
-		//If the current distance is already worse than the best try another Vertex
-		if shortest && current.distance > g.best {
-			continue
-		}
-		for v, dist := range current.arcs {
-			//If the arc has better access, than the current best, update the Vertex being touched
-			if (shortest && current.distance+dist < g.Verticies[v].distance) ||
-				(!shortest && current.distance+dist > g.Verticies[v].distance) ||
-				(current.distance+dist == g.Verticies[v].distance && !g.Verticies[v].containsBest(current.ID)) {
-				//if g.Verticies[v].bestVertex == current.ID && g.Verticies[v].ID != dest {
-				if current.containsBest(v) && g.Verticies[v].ID != dest {
-					//also only do this if we aren't checkout out the best distance again
-					//This seems familiar 8^)
-					return BestPaths{}, newErrLoop(current.ID, v)
+		for to, dist := range g.Verticies[current.id].arcs {
+			if better(current.distance+dist, distances[to]) {
+				if bestVerticies[current.id][0] == to && to != dest {
+					return BestPaths{}, newErrLoop(current.id, to)
 				}
-				if current.distance+dist == g.Verticies[v].distance {
-					//At this point we know it's not in the list due to initial check
-					g.Verticies[v].bestVerticies = append(g.Verticies[v].bestVerticies, current.ID)
+				if (current.distance + dist) == distances[to] {
+					bestVerticies[to] = append(bestVerticies[to], current.id)
 				} else {
-					g.Verticies[v].distance = current.distance + dist
-					g.Verticies[v].bestVerticies = []int{current.ID}
+					distances[to] = current.distance + dist
+					bestVerticies[to] = []int{current.id}
+					if to == dest {
+						visitedDest = true
+						best = distances[to]
+						continue // Do not push if dest
+					}
+					visiting.PushOrdered(currentDistance{to, distances[to]})
 				}
-				if v == dest {
-					g.visitedDest = true
-					g.best = current.distance + dist
-					continue
-					//If this is the destination update best, so we can stop looking at
-					// useless Verticies
-				}
-				//Push this updated Vertex into the list to be evaluated, pushes in
-				// sorted form
-				g.visiting.PushOrdered(&g.Verticies[v])
 			}
 		}
 	}
-	if !g.visitedDest {
+	if !visitedDest {
 		return BestPaths{}, ErrNoPath
 	}
-	return g.bestPaths(src, dest), nil
+	paths := bestPaths(bestVerticies, src, dest)
+	result := make(BestPaths, len(paths))
+	for i := range paths {
+		result[i] = BestPath{Distance: distances[dest], Path: paths[i]}
+	}
+	return result, nil
 }
 
-func (g *Graph) bestPaths(src, dest int) BestPaths {
-	paths := g.visitPath(src, dest, dest)
-	best := BestPaths{}
+func bestPaths(bestVerticies [][]int, src, dest int) [][]int {
+	paths := visitPath(bestVerticies, src, dest, dest)
+	best := [][]int{}
+	//reverse order of paths
 	for indexPaths := range paths {
 		for i, j := 0, len(paths[indexPaths])-1; i < j; i, j = i+1, j-1 {
 			paths[indexPaths][i], paths[indexPaths][j] = paths[indexPaths][j], paths[indexPaths][i]
 		}
-		best = append(best, BestPath{g.Verticies[dest].distance, paths[indexPaths]})
+		best = append(best, paths[indexPaths])
 	}
-
 	return best
 }
 
-func (g *Graph) visitPath(src, dest, currentNode int) [][]int {
-	if currentNode == src {
+// visitPath is a recursive function that will visit all the bestVerticies of a Vertex
+func visitPath(bestVerticies [][]int, src, dest, currentVerticie int) [][]int {
+	if currentVerticie == src {
 		return [][]int{
-			{currentNode},
+			{currentVerticie},
 		}
 	}
 	paths := [][]int{}
-	for _, vertex := range g.Verticies[currentNode].bestVerticies {
-		sps := g.visitPath(src, dest, vertex)
-		for i := range sps {
-			paths = append(paths, append([]int{currentNode}, sps[i]...))
+	for _, vertex := range bestVerticies[currentVerticie] {
+		subPaths := visitPath(bestVerticies, src, dest, vertex)
+		for i := range subPaths {
+			//just note that we are walking in reverse order
+			subPathTilHere := append([]int{currentVerticie}, subPaths[i]...)
+			paths = append(paths, subPathTilHere)
 		}
 	}
 	return paths

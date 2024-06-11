@@ -2,6 +2,7 @@ package dijkstra
 
 import (
 	"log"
+	"math"
 	"os"
 	"reflect"
 	"strconv"
@@ -11,32 +12,23 @@ import (
 
 func TestErrors(t *testing.T) {
 	t.Run("ErrNoPath", func(t *testing.T) {
-		testSolution(t, BestPath{}, ErrNoPath, "testdata/I.txt", 0, 4, true, -1)
+		testSolution(t, BestPath{}, ErrNoPath, "testdata/I.txt", 0, 4, true, listShortAuto)
 	})
 	t.Run("ErrLoop", func(t *testing.T) {
-		testSolution(t, BestPath{}, newErrLoop(2, 1), "testdata/J.txt", 0, 4, true, -1)
-	})
-	t.Run("ErrAlreadyCalculating", func(t *testing.T) {
-		nodeAmount := 5
-		g := GenerateWorstCase(nodeAmount)
-		g.running = true
-		_, err := g.Shortest(0, nodeAmount-1)
-		if err != ErrAlreadyCalculating {
-			t.Error("gotErr:", err, "wantErr:", ErrAlreadyCalculating)
-		}
+		testSolution(t, BestPath{}, newErrLoop(2, 1), "testdata/J.txt", 0, 4, true, listShortAuto)
 	})
 
 }
 
 func TestCorrect(t *testing.T) {
 	t.Run("Default", func(t *testing.T) {
-		testSolution(t, getBSol(), nil, "testdata/B.txt", 0, 5, true, -1)
-		testSolution(t, getKSolLong(), nil, "testdata/K.txt", 0, 4, false, -1)
-		testSolution(t, getKSolShort(), nil, "testdata/K.txt", 0, 4, true, -1)
+		testSolution(t, getBSol(), nil, "testdata/B.txt", 0, 5, true, listShortAuto)
+		testSolution(t, getKSolLong(), nil, "testdata/K.txt", 0, 4, false, listShortAuto)
+		testSolution(t, getKSolShort(), nil, "testdata/K.txt", 0, 4, true, listShortAuto)
 	})
 	t.Run("SolutionsAll", testCorrectSolutionsAll)
 	t.Run("Lists", func(t *testing.T) {
-		for i := 0; i <= 3; i++ {
+		for i := range listNames {
 			testSolution(t, getBSol(), nil, "testdata/B.txt", 0, 5, true, i)
 			testSolution(t, getKSolLong(), nil, "testdata/K.txt", 0, 4, false, i)
 			testSolution(t, getKSolShort(), nil, "testdata/K.txt", 0, 4, true, i)
@@ -90,30 +82,26 @@ func TestCorrect(t *testing.T) {
 	})
 }
 func testConcurrentSolving(t *testing.T) {
-	baseNodes := 100
+	baseNodes := 4
 	graphAmount := 8
-	graphs := []Graph{}
-	for i := 0; i < graphAmount; i++ {
-		graphs = append(graphs, GenerateWorstCase(baseNodes+i))
-	}
-	var results = make([]BestPath, len(graphs))
+	graph := GenerateWorstCase(baseNodes)
+	var results = make([]BestPath, graphAmount)
 	wg := sync.WaitGroup{}
-	wg.Add(len(graphs))
-	for i, g := range graphs {
-		go func(i int, g Graph) {
-			results[i], _ = g.Shortest(0, baseNodes-1+i)
+	wg.Add(graphAmount)
+	for i := 0; i < graphAmount; i++ {
+		i := i
+		go func(i int) {
+			results[i], _ = graph.Shortest(0, baseNodes-1)
 			wg.Done()
-		}(i, g)
+		}(i)
 	}
 	wg.Wait()
 	for i, result := range results {
-		if len(result.Path) != baseNodes+i {
-			t.Error("Incorrect path length", len(result.Path), "!=", baseNodes+i)
+		if result.Distance != math.MaxInt64/2 {
+			t.Error("Incorrect distance", result.Distance, "!=", math.MaxInt64/2, "\n", graph)
 		}
-		for j, stepNode := range result.Path {
-			if stepNode != j {
-				t.Error("Incorrect path step", stepNode, "!=", j)
-			}
+		if len(result.Path) != 2 || result.Path[0] != 0 || result.Path[1] != baseNodes-1 {
+			t.Error("Incorrect path length", len(result.Path), "!=", baseNodes+i, "\n", graph)
 		}
 	}
 
@@ -131,7 +119,10 @@ func testCorrectSolutionsAll(t *testing.T) {
 	graph.AddArc(0, 2, 1)
 	graph.AddArc(1, 3, 0)
 	graph.AddArc(2, 3, 0)
-	testGraphSolutionAll(t, BestPaths{BestPath{1, []int{0, 2, 3}}, BestPath{1, []int{0, 1, 3}}}, nil, *graph, 0, 3, true)
+	testGraphSolutionAll(t, BestPaths{
+		BestPath{1, []int{0, 2, 3}},
+		BestPath{1, []int{0, 1, 3}},
+	}, nil, *graph, 0, 3, true)
 
 	graph = NewGraph()
 	graph.AddVertex(0)
@@ -149,37 +140,25 @@ func testCorrectSolutionsAll(t *testing.T) {
 	graph.AddArc(4, 2, 1)
 	graph.AddArc(4, 5, 1)
 
-	testGraphSolutionAll(t, BestPaths{BestPath{3, []int{0, 3, 4, 5}}, BestPath{3, []int{0, 1, 4, 5}}, BestPath{3, []int{0, 1, 2, 5}}}, nil, *graph, 0, 5, true)
+	testGraphSolutionAll(t, BestPaths{
+		BestPath{3, []int{0, 3, 4, 5}},
+		BestPath{3, []int{0, 1, 4, 5}},
+		BestPath{3, []int{0, 1, 2, 5}},
+	}, nil, *graph, 0, 5, true)
 }
 
 var benchNames = []string{"github.com/RyanCarrier-ALL", "github.com/RyanCarrier", "github.com/RyanCarrierSafe"}
-var listNames = []string{"PQShort", "PQLong", "LLShort", "LLLong"}
-
-func BenchmarkSetup(b *testing.B) {
-	nodeIterations := 6
-	nodes := 1
-	for j := 0; j < nodeIterations; j++ {
-		nodes *= 4
-		b.Run("setup/"+strconv.Itoa(nodes)+"Nodes", func(b *testing.B) {
-			filename := "testdata/bench/" + strconv.Itoa(nodes) + ".txt"
-			if _, err := os.Stat(filename); err != nil {
-				g := Generate(nodes)
-				err := g.ExportToFile(filename)
-				if err != nil {
-					log.Fatal(err)
-				}
-			}
-			g, _ := Import(filename)
-			b.ResetTimer()
-			for i := 0; i < b.N; i++ {
-				g.setup(true, 0, -1)
-			}
-		})
-	}
+var listNames = []string{
+	"listShortAuto",
+	"listLongAuto",
+	"listShortPQ",
+	"listLongPQ",
+	"listShortLL",
+	"listLongLL",
 }
 
 func BenchmarkLists(b *testing.B) {
-	nodeIterations := 6
+	nodeIterations := 3
 	shortest := false
 	shortText := []string{"Short", "Long"}
 	for z := 0; z < 2; z++ {
@@ -197,10 +176,9 @@ func BenchmarkLists(b *testing.B) {
 }
 
 func benchmarkList(b *testing.B, nodes, list int, shortest bool) {
-
 	filename := "testdata/bench/" + strconv.Itoa(nodes) + ".txt"
 	if _, err := os.Stat(filename); err != nil {
-		g := Generate(nodes)
+		g := GenerateWorstCase(nodes)
 		err := g.ExportToFile(filename)
 		if err != nil {
 			log.Fatal(err)
@@ -211,8 +189,7 @@ func benchmarkList(b *testing.B, nodes, list int, shortest bool) {
 	//====RESET TIMER BEFORE LOOP====
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		graph.setup(shortest, src, list)
-		graph.postSetupEvaluate(src, dest, shortest)
+		graph.evaluate(src, dest, shortest, list)
 	}
 }
 
@@ -239,7 +216,7 @@ func BenchmarkAll(b *testing.B) {
 func benchmarkAlt(b *testing.B, nodes, i int) {
 	filename := "testdata/bench/" + strconv.Itoa(nodes) + ".txt"
 	if _, err := os.Stat(filename); err != nil {
-		g := Generate(nodes)
+		g := GenerateWorstCase(nodes)
 		err := g.ExportToFile(filename)
 		if err != nil {
 			log.Fatal(err)
@@ -294,14 +271,7 @@ func testSolution(t *testing.T, best BestPath, wanterr error, filename string, f
 	}
 	var got BestPath
 	var gotAll BestPaths
-	if list >= 0 {
-		graph.setup(shortest, from, list)
-		got, err = graph.postSetupEvaluate(from, to, shortest)
-	} else if shortest {
-		got, err = graph.Shortest(from, to)
-	} else {
-		got, err = graph.Longest(from, to)
-	}
+	got, err = graph.evaluate(from, to, shortest, list)
 	testErrors(t, wanterr, err, filename)
 	testResults(t, got, best, shortest, filename)
 	if shortest {
@@ -311,14 +281,7 @@ func testSolution(t *testing.T, best BestPath, wanterr error, filename string, f
 	}
 	testErrors(t, wanterr, err, filename)
 	testResults(t, got, best, shortest, filename)
-	if list >= 0 {
-		graph.setup(shortest, from, list)
-		gotAll, err = graph.postSetupEvaluateAll(from, to, shortest)
-	} else if shortest {
-		gotAll, err = graph.ShortestAll(from, to)
-	} else {
-		gotAll, err = graph.LongestAll(from, to)
-	}
+	gotAll, err = graph.evaluateAll(from, to, shortest, list)
 	testErrors(t, wanterr, err, filename)
 	if len(gotAll) == 0 {
 		gotAll = BestPaths{BestPath{}}
