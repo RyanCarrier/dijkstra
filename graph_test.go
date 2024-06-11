@@ -33,13 +33,22 @@ func TestAddVertex(t *testing.T) {
 	if v = g.AddNewEmptyVertex(); v != 11 {
 		t.Error("Adding self assigned vertex fail when extending slice")
 	}
-	err = g.AddVertex(11, map[int]uint64{5: 1})
-	if err == nil {
-		t.Error("adding vertex should have failed")
+	if _, err := g.GetArc(11, 5); err == nil {
+		t.Error("Arc should not exist")
 	}
-	err = g.AddVertexAndArcs(11, map[int]uint64{5: 1})
-	if err == nil {
-		t.Error("adding vertex should have failed")
+	err = g.AddVertex(11, map[int]uint64{5: 1})
+	if err != nil {
+		t.Error("overwritting vertex should have succeeded")
+	}
+	if arc, err := g.GetArc(11, 5); err != nil || arc != 1 {
+		t.Error("Error getting arc", err, arc)
+	}
+	err = g.AddVertexAndArcs(11, map[int]uint64{5: 2})
+	if err != nil {
+		t.Error("adding vertex should have overwritten successfully")
+	}
+	if arc, err := g.GetArc(11, 5); err != nil || arc != 2 {
+		t.Error("Error getting arc")
 	}
 	err = g.AddVertex(100, map[int]uint64{101: 1})
 	if err == nil {

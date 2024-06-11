@@ -30,7 +30,11 @@ func (g *Graph) AddNewEmptyVertex() (index int) {
 
 // AddVertex adds a single vertex at the specified index
 func (g *Graph) AddEmptyVertex(index int) error {
-	return g.AddVertex(index, map[int]uint64{})
+	if err := g.vertexAvailable(index); err != nil {
+		return err
+	}
+	g.addVertex(index, map[int]uint64{})
+	return nil
 }
 
 func (g Graph) vertexOK(index int) error {
@@ -84,11 +88,11 @@ func (g Graph) GetArc(src, dest int) (uint64, error) {
 	return got, nil
 }
 
-// AddVertex adds a vertex with specified arcs, if the destination of an arc
+// AddVertex adds or overwrites a vertex with specified arcs, if the destination of an arc
 // does not exist, it will error. If arc destinations should be added, use
 // AddVertexAndArcs instead
 func (g *Graph) AddVertex(index int, vertexArcs map[int]uint64) error {
-	if err := g.vertexAvailable(index); err != nil {
+	if err := g.vertexOK(index); err != nil {
 		return err
 	}
 	for to := range vertexArcs {
@@ -103,11 +107,11 @@ func (g *Graph) AddVertex(index int, vertexArcs map[int]uint64) error {
 	return nil
 }
 
-// AddVertexAndArcs adds a vertex with specified arcs, if the destination of an
+// AddVertexAndArcs adds or overwrites a vertex with specified arcs, if the destination of an
 // arc does not exist, it will be added.
 func (g *Graph) AddVertexAndArcs(index int, vertexArcs map[int]uint64) error {
 	var err error
-	if err = g.vertexAvailable(index); err != nil {
+	if err = g.vertexOK(index); err != nil {
 		return err
 	}
 	for to := range vertexArcs {
