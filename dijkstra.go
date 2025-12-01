@@ -53,7 +53,7 @@ func (g Graph) Longest(src, dest int) (BestPath[int], error) {
 	return g.evaluate(src, dest, false, listLongAuto)
 }
 
-// ShortestAll calculates all of the longest paths from src to dest
+// ShortestAll calculates all of the shortest paths from src to dest
 func (g Graph) ShortestAll(src, dest int) (BestPaths[int], error) {
 	return g.evaluateAll(src, dest, true, listShortAuto)
 }
