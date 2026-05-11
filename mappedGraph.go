@@ -217,6 +217,15 @@ func (mg MappedGraph[T]) getMappedMapCreate(arcs map[T]uint64) (map[int]uint64, 
 	return mappedArcs, nil
 }
 
+// GetVertices returns all mapped vertex keys
+func (mg MappedGraph[T]) GetVertices() []T {
+	vertices := make([]T, 0, len(mg.mapping))
+	for k := range mg.mapping {
+		vertices = append(vertices, k)
+	}
+	return vertices
+}
+
 func (mg MappedGraph[T]) validate() error {
 	for k, v := range mg.mapping {
 		if _, err := mg.graph.GetVertexArcs(v); err != nil {

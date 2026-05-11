@@ -2,6 +2,7 @@ package dijkstra
 
 import (
 	"reflect"
+	"slices"
 	"testing"
 )
 
@@ -89,5 +90,18 @@ func TestGetVertices(t *testing.T) {
 	expectedResult = []int{0, 4}
 	if !reflect.DeepEqual(g.GetVertices(), expectedResult) {
 		t.Errorf("Graph should have vertices [0,4] but has %v", g.GetVertices())
+	}
+}
+
+func TestGetVerticesMapped(t *testing.T) {
+	mg := NewMappedGraph[string]()
+	mg.AddEmptyVertex("A")
+	mg.AddEmptyVertex("B")
+	mg.AddEmptyVertex("C")
+	got := mg.GetVertices()
+	slices.Sort(got)
+	expected := []string{"A", "B", "C"}
+	if !reflect.DeepEqual(got, expected) {
+		t.Errorf("MappedGraph should have vertices %v but has %v", expected, got)
 	}
 }
