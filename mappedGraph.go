@@ -249,6 +249,7 @@ func (mg MappedGraph[T]) toMappedBestPath(bp BestPath[int]) (BestPath[T], error)
 func (mg MappedGraph[T]) toMappedBestPaths(bp BestPaths[int]) (BestPaths[T], error) {
 	var err error
 	var result BestPaths[T]
+	result.Distance = bp.Distance
 	result.Paths = make([][]T, len(bp.Paths))
 	for i, v := range bp.Paths {
 		result.Paths[i], err = mg.inverseMapPath(v)

@@ -550,6 +550,41 @@ var testGraphsCorrectAll = []testGraphAll{
 	},
 }
 
+func TestMappedGraphAllDistance(t *testing.T) {
+	graph := NewMappedGraph[string]()
+	graph.AddEmptyVertex("A")
+	graph.AddEmptyVertex("B")
+	graph.AddEmptyVertex("C")
+	graph.AddEmptyVertex("D")
+	graph.AddEmptyVertex("E")
+	graph.AddVertexAndArcs("A", map[string]uint64{"B": 1, "C": 1})
+	graph.AddVertexAndArcs("B", map[string]uint64{"D": 1})
+	graph.AddVertexAndArcs("C", map[string]uint64{"D": 1})
+	graph.AddVertexAndArcs("D", map[string]uint64{"E": 1})
+
+	shortestAll, err := graph.ShortestAll("A", "E")
+	if err != nil {
+		t.Fatal("ShortestAll error:", err)
+	}
+	if shortestAll.Distance != 3 {
+		t.Errorf("ShortestAll distance: got %d, want 3", shortestAll.Distance)
+	}
+	if len(shortestAll.Paths) != 2 {
+		t.Errorf("ShortestAll paths: got %d paths, want 2", len(shortestAll.Paths))
+	}
+
+	longestAll, err := graph.LongestAll("A", "E")
+	if err != nil {
+		t.Fatal("LongestAll error:", err)
+	}
+	if longestAll.Distance != 3 {
+		t.Errorf("LongestAll distance: got %d, want 3", longestAll.Distance)
+	}
+	if len(longestAll.Paths) != 2 {
+		t.Errorf("LongestAll paths: got %d paths, want 2", len(longestAll.Paths))
+	}
+}
+
 var testMappedGraphs = []testMappedGraph[string]{
 	{
 		`A B,4 C,2
