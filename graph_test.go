@@ -1,6 +1,9 @@
 package dijkstra
 
-import "testing"
+import (
+	"reflect"
+	"testing"
+)
 
 func TestGetVertex(t *testing.T) {
 	g := NewGraph()
@@ -72,5 +75,19 @@ func TestValidateCorrect(t *testing.T) {
 		if test.graph.validate() != nil {
 			t.Error("Graph ", i, "not valid;\n", test.graph.validate(), " should be nil")
 		}
+	}
+}
+
+func TestGetVertices(t *testing.T) {
+	g := NewGraph()
+	g.AddEmptyVertex(0)
+	expectedResult := []int{0}
+	if !reflect.DeepEqual(g.GetVertices(), expectedResult) {
+		t.Errorf("Graph should have vertices [0] but has %v", g.GetVertices())
+	}
+	g.AddEmptyVertex(4)
+	expectedResult = []int{0, 4}
+	if !reflect.DeepEqual(g.GetVertices(), expectedResult) {
+		t.Errorf("Graph should have vertices [0,4] but has %v", g.GetVertices())
 	}
 }

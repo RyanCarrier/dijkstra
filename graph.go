@@ -225,3 +225,14 @@ func (g Graph) validate() error {
 	}
 	return nil
 }
+
+// GetVertices returns all indexes of all vertices
+func (g Graph) GetVertices() []int {
+	var vertices []int
+	for idx, vertex := range g.vertexArcs {
+		if vertex != nil {
+			vertices = append(vertices, idx)
+		}
+	}
+	return vertices
+}
